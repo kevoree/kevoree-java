@@ -12,7 +12,29 @@
     <h3>Nodes:</h3>
     <ul>
         <repeat each={{modelRoot.nodes}} as="node">
-            <li>{{node.name}}</li>
+            <li>{{node.name}}
+                <ul>
+                    <li>Metrics
+                       <ul>
+                           <repeat each={{node.metrics}} as="metric">
+                               <li>name:{{metric.name}}, value:{{metric.value}}</li>
+                           </repeat>
+                       </ul>
+                    </li>
+                    <li>Actions:
+                        <ul>
+                            <li><button>Add Helloworld Instance</button></li>
+                        </ul>
+                    </li>
+                    <li>Instances
+                        <ul>
+                            <repeat each={{node.instances}} as="instance">
+                                <li>{{instance.name}}</li>
+                            </repeat>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
         </repeat>
     </ul>
 </template>
