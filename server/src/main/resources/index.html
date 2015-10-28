@@ -15,15 +15,20 @@
             <li>{{node.name}}
                 <ul>
                     <li>Metrics
-                       <ul>
-                           <repeat each={{node.metrics}} as="metric">
-                               <li>name:{{metric.name}}, value:{{metric.value}}</li>
-                           </repeat>
-                       </ul>
+                        <ul>
+                            <repeat each={{node.metrics}} as="metric">
+                                <li>name:{{metric.name}}, value:{{metric.value}}</li>
+                            </repeat>
+                        </ul>
                     </li>
                     <li>Actions:
                         <ul>
-                            <li><button>Add Helloworld Instance</button></li>
+                            <li>
+                                <button onclick="{{node | addNowInstance}}">AddNow Instance</button>
+                            </li>
+                            <li>
+                                <button onclick="{{node | add10SecInstance}}">Add10Secondes Instance</button>
+                            </li>
                         </ul>
                     </li>
                     <li>Instances
@@ -40,8 +45,8 @@
 </template>
 
 <h2>Kevoree Server Dashboard</h2>
-<div id='nodeView'></div>
 
+<div id='nodeView'></div>
 
 <script>
     var wsClient = new org.kevoree.modeling.drivers.websocket.WebSocketPeer("ws://" + window.location.hostname + ":3080/shared");
@@ -50,18 +55,34 @@
     model.connect(function () {
 
         var modelContext = model.createModelContext();
-        modelContext.set(0,org.kevoree.modeling.KConfig.END_OF_TIME,0,0);
+        modelContext.set(Date.now(), org.kevoree.modeling.KConfig.END_OF_TIME, 0, 0);
 
         model.manager().getRoot(0, Date.now(), function (modelRoot) {
             var html = document.getElementById("NodesView").innerHTML;
             var t = paperclip.template(html);
+            paperclip.modifiers.addNowInstance = function (node) {
+                return function () {
+                    var now = Date.now();
+                    node.jump(now, function (nowNode) {
+                        var newInstance = model.createInstance(0,now);
+                        newInstance.setName("instance_"+Math.abs(Math.random()*1000));
+                        nowNode.addInstances(newInstance);
+                        //propagate changes
+                        model.save(null);
+                        //just to refresh the template by moving the time machine to now
+                        modelContext.set(now, org.kevoree.modeling.KConfig.END_OF_TIME, 0, 0);
+                    });
+                };
+            };
+            paperclip.modifiers.add10SecInstance = function (node) {
+                return function () {
+                    console.log('add10SecInstance', node);
+                };
+            };
             var v = t.view({
                 modelRoot: modelRoot,
-                model: model,
-                addComponent: function () {
-                    console.log("AddComponent")
-                }
-            },{modelContext:modelContext});
+                model: model
+            }, {modelContext: modelContext});
             document.getElementById('nodeView').appendChild(v.render());
         });
     });
