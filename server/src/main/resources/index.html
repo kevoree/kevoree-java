@@ -1,0 +1,23 @@
+<html>
+<head>
+    <script type="text/javascript" src="org.kevoree.modeling.microframework.browser.js"></script>
+    <script type="text/javascript" src="org.kevoree.modeling.drivers.websocket.js"></script>
+    <script type="text/javascript" src="model.js"></script>
+</head>
+<body>
+<h2>Kevoree Server Dashboard</h2>
+
+
+<script>
+    var wsClient = new org.kevoree.modeling.drivers.websocket.WebSocketPeer("ws://" + window.location.hostname + ":3080/shared");
+    var dataManager = org.kevoree.modeling.memory.manager.DataManagerBuilder.create().withContentDeliveryDriver(wsClient).build();
+    var metaModel = new org.KevoreeModel(dataManager);
+    metaModel.connect(function(){
+
+        console.log('connected');
+
+    });
+</script>
+
+</body>
+</html>
