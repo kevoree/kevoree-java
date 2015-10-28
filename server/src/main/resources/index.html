@@ -3,19 +3,45 @@
     <script type="text/javascript" src="org.kevoree.modeling.microframework.browser.js"></script>
     <script type="text/javascript" src="org.kevoree.modeling.drivers.websocket.js"></script>
     <script type="text/javascript" src="model.js"></script>
+    <script type="text/javascript" src="paperclip.js"></script>
+    <script type="text/javascript" src="parser.js"></script>
 </head>
 <body>
+
+<template id="NodesView">
+    <h3>Nodes:</h3>
+    <ul>
+        <repeat each={{modelRoot.nodes}} as="node">
+            <li>{{node.name}}</li>
+        </repeat>
+    </ul>
+</template>
+
 <h2>Kevoree Server Dashboard</h2>
+<div id='nodeView'></div>
 
 
 <script>
     var wsClient = new org.kevoree.modeling.drivers.websocket.WebSocketPeer("ws://" + window.location.hostname + ":3080/shared");
     var dataManager = org.kevoree.modeling.memory.manager.DataManagerBuilder.create().withContentDeliveryDriver(wsClient).build();
-    var metaModel = new org.KevoreeModel(dataManager);
-    metaModel.connect(function(){
+    var model = new org.KevoreeModel(dataManager);
+    model.connect(function () {
 
-        console.log('connected');
+        var modelContext = model.createModelContext();
+        modelContext.set(0,org.kevoree.modeling.KConfig.END_OF_TIME,0,0);
 
+        model.manager().getRoot(0, Date.now(), function (modelRoot) {
+            var html = document.getElementById("NodesView").innerHTML;
+            var t = paperclip.template(html);
+            var v = t.view({
+                modelRoot: modelRoot,
+                model: model,
+                addComponent: function () {
+                    console.log("AddComponent")
+                }
+            },{modelContext:modelContext});
+            document.getElementById('nodeView').appendChild(v.render());
+        });
     });
 </script>
 

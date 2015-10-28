@@ -37,6 +37,11 @@
             <version>${kmf.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.kevoree.modeling</groupId>
+            <artifactId>org.kevoree.modeling.microframework.addons.template</artifactId>
+            <version>${kmf.version}</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
