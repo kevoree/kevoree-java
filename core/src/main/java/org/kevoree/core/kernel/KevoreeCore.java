@@ -63,25 +63,6 @@ public class KevoreeCore implements Core, Runnable {
                     listener.listen(node);
                     listener.then(o1 -> mono_scheduler.schedule(this, 0, TimeUnit.SECONDS));
                     mono_scheduler.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
-
-                    /*
-                    scheduledExecutorService.scheduleAtFixedRate(() -> {
-                        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-                        node.jump(System.currentTimeMillis(), currentNode -> {
-                            //currentNode.set(MetaNode.ATT_AVG_LOAD, osBean.getSystemLoadAverage());
-                            model.save(null);
-                        });
-                        System.out.println("Demo print other names");
-                        root.jump(System.currentTimeMillis(), currentRoot -> {
-                            currentRoot.traversal().traverse(MetaModel.REL_NODES).then(nodes -> {
-                                for (KObject node : nodes) {
-                                    System.out.println("\t" + node.getByName("name") + ",cpu=" + node.getByName("avg_load"));
-                                }
-                            });
-                        });
-
-                    }, 0, 10, TimeUnit.SECONDS);
-                    */
                 });
             });
         });
