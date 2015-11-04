@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kernel</artifactId>
-    <version>1-SNAPSHOT</version>
+    <artifactId>core</artifactId>
+    <version>6.0.0-SNAPSHOT</version>
 
     <name>Kevoree :: Core</name>
     <packaging>jar</packaging>
@@ -11,8 +11,7 @@
     <parent>
         <groupId>org.kevoree</groupId>
         <artifactId>org.kevoree.root</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>

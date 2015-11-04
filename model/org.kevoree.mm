@@ -1,16 +1,32 @@
+with version "6.0.0-SNAPSHOT"
+
 class org.kevoree.Model {
     rel nodes: org.kevoree.Node
-    rel types: org.kevoree.TypeDefinition
+
+    rel namespaces: org.kevoree.Namespace
 }
 
 class org.kevoree.Instance {
-    rel instances: org.kevoree.Instance
     att name: String
-    att type: String
+
+    rel typeDefinition: org.kevoree.TypeDefinition
     rel metrics: org.kevoree.Metric
 }
 
 class org.kevoree.Node extends org.kevoree.Instance {
+    rel host: org.kevoree.Node
+    rel subNodes: org.kevoree.Node
+    rel components: org.kevoree.Component
+}
+
+class org.kevoree.Component extends org.kevoree.Instance {
+    rel host: org.kevoree.Node
+}
+
+class org.kevoree.Namespace {
+    att name: String
+
+    rel typeDefinitions: org.kevoree.TypeDefinition
 }
 
 class org.kevoree.Metric {
@@ -20,13 +36,19 @@ class org.kevoree.Metric {
 
 class org.kevoree.TypeDefinition {
     att name: String
-    att kind: String
-    rel dependencies: org.kevoree.DeployUnit
+    att version: String
+
+    rel deployUnits: org.kevoree.DeployUnit
+}
+
+class org.kevoree.NodeType extends org.kevoree.TypeDefinition {
+
 }
 
 class org.kevoree.DeployUnit {
-    att uri: String
-    att kind: String
-    att code: String
+    att name: String
+    att platform: String
+    att version: String
+
     rel dependencies: org.kevoree.DeployUnit
 }

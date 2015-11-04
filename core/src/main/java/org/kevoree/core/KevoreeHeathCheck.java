@@ -1,4 +1,4 @@
-package org.kevoree.core.kernel;
+package org.kevoree.core;
 
 public class KevoreeHeathCheck implements Runnable {
 
