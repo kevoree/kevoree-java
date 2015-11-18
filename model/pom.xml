@@ -43,6 +43,7 @@
                         <configuration>
                             <metaModelFile>org.kevoree.mm</metaModelFile>
                             <js>true</js>
+                            <umd>true</umd>
                         </configuration>
                     </execution>
                 </executions>

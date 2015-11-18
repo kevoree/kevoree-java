@@ -77,15 +77,11 @@ class org.kevoree.NodeType extends org.kevoree.TypeDefinition {}
 
 class org.kevoree.GroupType extends org.kevoree.TypeDefinition {
     att remote: Bool
-
-    rel fragDictionaries: org.kevoree.FragmentDictionaryType
 }
 
 class org.kevoree.ChannelType extends org.kevoree.TypeDefinition {
     att remote: Bool
     att fragmentable: Bool
-
-    rel fragDictionaries: org.kevoree.FragmentDictionaryType
 }
 
 class org.kevoree.ComponentType extends org.kevoree.TypeDefinition {
@@ -107,12 +103,10 @@ class org.kevoree.DictionaryType extends org.kevoree.Element {
     rel attributes: org.kevoree.AttributeType
 }
 
-class org.kevoree.FragmentDictionaryType extends org.kevoree.Dictionary {
-    rel fragment: org.kevoree.Node
-}
-
 class org.kevoree.AttributeType extends org.kevoree.Element {
+    att name: String
     att optional: Bool
+    att fragment: Bool
 
     rel datatype: org.kevoree.DataType with maxBound 1
 }
@@ -120,16 +114,12 @@ class org.kevoree.AttributeType extends org.kevoree.Element {
 class org.kevoree.PortType extends org.kevoree.Element {
     att name: String
 
-    rel protocol: org.kevoree.MsgProtocol
+    rel protocol: org.kevoree.Value
 }
 
 class org.kevoree.Value extends org.kevoree.Element {
     att name: String
     att value: String
-}
-
-class org.kevoree.MsgProtocol extends org.kevoree.Element {
-    att name: String
 }
 
 class org.kevoree.DataType extends org.kevoree.Element {}
@@ -156,10 +146,14 @@ class org.kevoree.BooleanDataType extends org.kevoree.DataType {
     att default: Bool
 }
 class org.kevoree.ChoiceDataType extends org.kevoree.DataType {
-    rel default: org.kevoree.Choice with maxBound 1
-    rel choices: org.kevoree.Choice
+    att defaultIndex: Int
+
+    rel choices: org.kevoree.Item
+}
+class org.kevoree.ListDataType extends org.kevoree.DataType {
+    rel default: org.kevoree.Item
 }
 
-class org.kevoree.Choice {
+class org.kevoree.Item {
     att value: String
 }
