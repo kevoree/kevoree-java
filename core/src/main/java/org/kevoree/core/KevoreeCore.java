@@ -2,14 +2,11 @@ package org.kevoree.core;
 
 import org.KevoreeModel;
 import org.kevoree.Component;
-import org.kevoree.Instance;
 import org.kevoree.Model;
 import org.kevoree.Node;
 import org.kevoree.core.api.Command;
 import org.kevoree.core.api.Core;
-import org.kevoree.core.command.AddInstance;
 import org.kevoree.meta.MetaComponent;
-import org.kevoree.meta.MetaInstance;
 import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
 import org.kevoree.modeling.KListener;
@@ -24,18 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 public class KevoreeCore implements Core, Runnable {
 
-    private Map<String, Command> commands = new HashMap<String, Command>();
     private KevoreeModel kModel;
     private Model model;
     private Node node;
-    private ScheduledExecutorService mono_scheduler = Executors.newSingleThreadScheduledExecutor();
-    public static final String ADD_INSTANCE = "add_instance";
-    public static final String REMOVE_INSTANCE = "remove_instance";
-
-    public KevoreeCore() {
-        commands.put(ADD_INSTANCE, new AddInstance());
-        commands.put(REMOVE_INSTANCE, new AddInstance());
-    }
+    private final ScheduledExecutorService monoScheduler = Executors.newSingleThreadScheduledExecutor();
 
     public void boot(String url, String nodeName) {
         kModel = new KevoreeModel(DataManagerBuilder.create().withContentDeliveryDriver(new org.kevoree.modeling.drivers.websocket.WebSocketPeer(url)).build());
@@ -68,8 +57,7 @@ public class KevoreeCore implements Core, Runnable {
                             }
                             kModel.save(null);
                             listener.listen(this.node);
-                            listener.then(o1 -> mono_scheduler.schedule(this, 0, TimeUnit.SECONDS));
-//                            mono_scheduler.scheduleAtFixedRate(this, 0, 5, TimeUnit.SECONDS);
+                            listener.then(o1 -> monoScheduler.schedule(this, 0, TimeUnit.SECONDS));
                         });
             });
         });

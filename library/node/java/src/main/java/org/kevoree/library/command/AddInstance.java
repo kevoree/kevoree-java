@@ -1,4 +1,4 @@
-package org.kevoree.core.command;
+package org.kevoree.library.command;
 
 import org.kevoree.core.api.Command;
 import org.kevoree.core.api.Core;
