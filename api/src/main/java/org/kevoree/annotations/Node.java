@@ -1,4 +1,4 @@
-package org.kevoree.core.api.annotations;
+package org.kevoree.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

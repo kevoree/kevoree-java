@@ -48,7 +48,7 @@
         <plugins>
             <plugin>
                 <groupId>org.kevoree.tool</groupId>
-                <artifactId>library-model-generator</artifactId>
+                <artifactId>model-generator</artifactId>
                 <version>6.0.0-SNAPSHOT</version>
             </plugin>
         </plugins>

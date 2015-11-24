@@ -4,8 +4,7 @@ import org.KevoreeModel;
 import org.kevoree.Component;
 import org.kevoree.Model;
 import org.kevoree.Node;
-import org.kevoree.core.api.Command;
-import org.kevoree.core.api.Core;
+import org.kevoree.api.Core;
 import org.kevoree.meta.MetaComponent;
 import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
@@ -13,8 +12,6 @@ import org.kevoree.modeling.KListener;
 import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

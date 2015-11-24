@@ -1,7 +1,8 @@
 package org.kevoree.library.command;
 
-import org.kevoree.core.api.Command;
-import org.kevoree.core.api.Core;
+
+import org.kevoree.api.Command;
+import org.kevoree.api.Core;
 
 public class AddInstance implements Command {
     @Override

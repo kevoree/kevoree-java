@@ -1,4 +1,4 @@
-package org.kevoree.core.api;
+package org.kevoree.api;
 
 import org.kevoree.Model;
 import org.kevoree.Node;
