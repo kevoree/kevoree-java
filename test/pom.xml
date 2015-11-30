@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Kevoree :: API</name>
-    <artifactId>api</artifactId>
+    <name>Kevoree :: Test</name>
+    <artifactId>test</artifactId>
     <packaging>jar</packaging>
 
     <parent>

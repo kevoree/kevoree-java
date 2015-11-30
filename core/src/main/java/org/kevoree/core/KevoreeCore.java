@@ -4,7 +4,6 @@ import org.KevoreeModel;
 import org.kevoree.Component;
 import org.kevoree.Model;
 import org.kevoree.Node;
-import org.kevoree.api.Core;
 import org.kevoree.meta.MetaComponent;
 import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
@@ -16,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class KevoreeCore implements Core, Runnable {
+public class KevoreeCore implements Runnable {
 
     private KevoreeModel kModel;
     private Model model;
@@ -60,12 +59,10 @@ public class KevoreeCore implements Core, Runnable {
         });
     }
 
-    @Override
     public Model model() {
         return model;
     }
 
-    @Override
     public Node node() {
         return node;
     }

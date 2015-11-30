@@ -18,6 +18,7 @@
     <modules>
         <module>model</module>
         <module>api</module>
+        <module>test</module>
         <module>tool</module>
         <module>core</module>
         <module>library</module>
