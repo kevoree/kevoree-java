@@ -1,23 +1,33 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <name>Kevoree :: Library :: Comp :: Ticker</name>
-  <artifactId>ticker</artifactId>
-  <packaging>jar</packaging>
+    <name>Kevoree :: Library :: Comp :: Ticker</name>
+    <artifactId>ticker</artifactId>
+    <packaging>jar</packaging>
 
-  <parent>
-    <groupId>org.kevoree.library.comp</groupId>
-    <artifactId>root</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
-  </parent>
+    <properties>
+        <kevoree.version>6.0.0-SNAPSHOT</kevoree.version>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <parent>
+        <groupId>org.kevoree.library.comp</groupId>
+        <artifactId>comp-root</artifactId>
+        <version>6.0.0-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.kevoree</groupId>
+            <artifactId>api</artifactId>
+            <version>${kevoree.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

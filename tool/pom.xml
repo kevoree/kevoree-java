@@ -5,7 +5,7 @@
 
     <name>Kevoree :: Tool</name>
     <groupId>org.kevoree.tool</groupId>
-    <artifactId>root</artifactId>
+    <artifactId>tool-root</artifactId>
     <packaging>pom</packaging>
 
     <parent>
