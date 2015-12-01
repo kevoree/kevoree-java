@@ -3,8 +3,6 @@ package org.kevoree.test;
 import org.junit.Before;
 import org.junit.Test;
 import org.kevoree.test.comp.SubFakeComp;
-import org.kevoree.test.exception.CreateMockException;
-import org.kevoree.test.exception.SetParamException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -19,18 +17,18 @@ public class TestSubFakeComp {
     private MockComponent<SubFakeComp> mock;
 
     @Before
-    public void setUp() throws CreateMockException, SetParamException {
+    public void setUp() throws Exception {
         mock = new MockComponent<>(SubFakeComp.class);
     }
 
     @Test
-    public void testGet() throws CreateMockException {
+    public void testGet() throws Exception {
         SubFakeComp comp = mock.get();
         assertNotNull(comp);
     }
 
     @Test
-    public void testCustomAttributes() throws CreateMockException, SetParamException {
+    public void testCustomAttributes() throws Exception {
         SubFakeComp comp = mock.setParam("intVal", 4)
                 .setParam("boolVal", false)
                 .setParam("stringVal", "foo")
@@ -42,7 +40,7 @@ public class TestSubFakeComp {
     }
 
     @Test
-    public void testMultilineStrParam() throws CreateMockException, SetParamException {
+    public void testMultilineStrParam() throws Exception {
         SubFakeComp comp = mock.get();
         assertTrue(comp.getStringVal().contains("\n"));
     }

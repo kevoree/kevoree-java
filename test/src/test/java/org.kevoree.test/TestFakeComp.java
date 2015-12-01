@@ -23,13 +23,13 @@ public class TestFakeComp {
     }
 
     @Test
-    public void testGet() throws CreateMockException {
+    public void testGet() throws Exception {
         FakeComp comp = mock.get();
         assertNotNull(comp);
     }
 
     @Test
-    public void testCustomAttributes() throws CreateMockException, SetParamException {
+    public void testCustomAttributes() throws Exception {
         FakeComp comp = mock.setParam("intVal", 0)
                             .setParam("boolVal", true)
                             .get();

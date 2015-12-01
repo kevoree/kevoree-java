@@ -22,7 +22,7 @@ public class TestSubAbstractComp {
     }
 
     @Test
-    public void testGet() {
+    public void testGet() throws Exception {
         SubAbstractComp comp = this.mock.get();
         assertNotNull(comp);
     }

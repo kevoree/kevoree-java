@@ -5,11 +5,15 @@ import org.kevoree.annotations.params.BooleanParam;
 import org.kevoree.annotations.params.IntParam;
 import org.kevoree.annotations.params.StringParam;
 import org.kevoree.test.exception.CreateMockException;
+import org.kevoree.test.exception.GetParamException;
 import org.kevoree.test.exception.SetParamException;
 import org.kevoree.tool.ReflectUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,6 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class MockComponent<T> {
 
+    private List<Class<? extends Annotation>> paramAnnotations;
     private Class<T> clazz;
     private T instance;
 
@@ -26,7 +31,13 @@ public class MockComponent<T> {
         if (!ReflectUtils.hasAnnotation(clazz, Component.class)) {
             throw new CreateMockException("Class "+clazz.getName()+" is not a @Component");
         }
+
         this.clazz = clazz;
+        this.paramAnnotations = new ArrayList<>();
+        this.paramAnnotations.add(BooleanParam.class);
+        this.paramAnnotations.add(StringParam.class);
+        this.paramAnnotations.add(IntParam.class);
+
         try {
             instance = clazz.newInstance();
             generateParams();
@@ -65,6 +76,37 @@ public class MockComponent<T> {
 
     public T get() {
         return instance;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(clazz.getName());
+        builder.append(" {");
+
+        for (Field field : ReflectUtils.getAllFieldsWithAnnotations(clazz, this.paramAnnotations)) {
+            boolean isAccessible = field.isAccessible();
+            if (!isAccessible) {
+                field.setAccessible(true);
+            }
+            try {
+                builder.append("\n");
+                builder.append("  ");
+                builder.append(field.getName());
+                builder.append(" = ");
+                builder.append(field.get(instance));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } finally {
+                if (!isAccessible) {
+                    field.setAccessible(false);
+                }
+            }
+        }
+
+        builder.append("\n}");
+
+        return builder.toString();
     }
 
     private void generateParams() throws SetParamException {
