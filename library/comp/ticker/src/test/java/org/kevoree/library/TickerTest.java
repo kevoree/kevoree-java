@@ -7,7 +7,12 @@ import org.easymock.TestSubject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kevoree.annotations.params.IntParam;
 import org.kevoree.api.OutputPort;
+
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  *
@@ -22,21 +27,33 @@ public class TickerTest {
     @Mock
     private OutputPort tick;
 
-    @Before
-    public void setUp() {
+    @Mock
+    private ScheduledExecutorService executor;
+
+    @Test
+    public void testStart() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+        tick.send(EasyMock.anyString());
+        EasyMock.replay(tick);
+
+        for (Field field : ticker.getClass().getFields()) {
+            if (field.isAnnotationPresent(IntParam.class)) {
+                field.setAccessible(true);
+                field.set(ticker, 500);
+                field.setAccessible(false);
+            }
+        }
+        ticker.start();
+        // dirty
+        Thread.sleep(1000);
+        EasyMock.verify(tick);
     }
 
     @Test
-    public void testStart() throws InterruptedException {
-        tick.send(EasyMock.anyString());
+    public void testStop() throws InterruptedException {
+        EasyMock.expect(executor.shutdownNow()).andReturn(Collections.emptyList());
+        EasyMock.replay(executor);
 
-        EasyMock.replay(tick);
-
-        ticker.start();
-
-        // dirty
-        Thread.sleep(4000);
-
-        EasyMock.verify(tick);
+        ticker.stop();
+        EasyMock.verify(executor);
     }
 }

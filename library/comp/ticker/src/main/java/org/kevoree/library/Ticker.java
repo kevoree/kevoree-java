@@ -38,7 +38,6 @@ public class Ticker {
             } else {
                 msg = String.valueOf(System.currentTimeMillis());
             }
-            System.out.println("send tick = "+tick);
             tick.send(msg);
         }, 0, period, TimeUnit.MILLISECONDS);
     }

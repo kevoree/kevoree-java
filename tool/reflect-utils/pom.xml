@@ -2,33 +2,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Kevoree :: Test</name>
-    <artifactId>test</artifactId>
+    <name>Kevoree :: Tool :: Reflect Utils</name>
+    <artifactId>reflect-utils</artifactId>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>org.kevoree</groupId>
+        <groupId>org.kevoree.tool</groupId>
         <artifactId>root</artifactId>
         <version>6.0.0-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <kevoree.version>6.0.0-SNAPSHOT</kevoree.version>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>org.kevoree</groupId>
-            <artifactId>api</artifactId>
-            <version>${kevoree.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kevoree.tool</groupId>
-            <artifactId>reflect-utils</artifactId>
-            <version>${kevoree.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
