@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kevoree.test.comp.SubAbstractComp;
 import org.kevoree.test.exception.CreateMockException;
-import org.kevoree.test.exception.SetParamException;
+import org.kevoree.test.exception.SetFieldException;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -17,7 +17,7 @@ public class TestSubAbstractComp {
     private MockComponent<SubAbstractComp> mock;
 
     @Before
-    public void setUp() throws CreateMockException, SetParamException {
+    public void setUp() throws CreateMockException, SetFieldException {
         this.mock = new MockComponent<>(SubAbstractComp.class);
     }
 

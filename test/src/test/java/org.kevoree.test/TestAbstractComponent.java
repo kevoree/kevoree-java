@@ -3,7 +3,7 @@ package org.kevoree.test;
 import org.junit.Test;
 import org.kevoree.test.comp.AbstractComponent;
 import org.kevoree.test.exception.CreateMockException;
-import org.kevoree.test.exception.SetParamException;
+import org.kevoree.test.exception.SetFieldException;
 
 /**
  *
@@ -14,7 +14,7 @@ public class TestAbstractComponent {
     private MockComponent<AbstractComponent> mock;
 
     @Test(expected = CreateMockException.class)
-    public void setUp() throws CreateMockException, SetParamException {
+    public void setUp() throws CreateMockException, SetFieldException {
         this.mock = new MockComponent<>(AbstractComponent.class);
     }
 }

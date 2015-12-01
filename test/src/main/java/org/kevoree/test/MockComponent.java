@@ -1,20 +1,19 @@
 package org.kevoree.test;
 
 import org.kevoree.annotations.Component;
+import org.kevoree.annotations.Output;
 import org.kevoree.annotations.params.BooleanParam;
 import org.kevoree.annotations.params.IntParam;
 import org.kevoree.annotations.params.StringParam;
+import org.kevoree.api.OutputPort;
 import org.kevoree.test.exception.CreateMockException;
-import org.kevoree.test.exception.GetParamException;
-import org.kevoree.test.exception.SetParamException;
+import org.kevoree.test.exception.SetFieldException;
 import org.kevoree.tool.ReflectUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -26,8 +25,9 @@ public class MockComponent<T> {
     private List<Class<? extends Annotation>> paramAnnotations;
     private Class<T> clazz;
     private T instance;
+    private Map<String, MockPort> ports = new HashMap<>();
 
-    public MockComponent(Class<T> clazz) throws CreateMockException, SetParamException {
+    public MockComponent(Class<T> clazz) throws CreateMockException, SetFieldException {
         if (!ReflectUtils.hasAnnotation(clazz, Component.class)) {
             throw new CreateMockException("Class "+clazz.getName()+" is not a @Component");
         }
@@ -41,6 +41,7 @@ public class MockComponent<T> {
         try {
             instance = clazz.newInstance();
             generateParams();
+            generatePorts();
         } catch (InstantiationException e) {
             throw new CreateMockException("Class "+clazz.getName()+" is not instantiable");
         } catch (IllegalAccessException e) {
@@ -48,7 +49,7 @@ public class MockComponent<T> {
         }
     }
 
-    public MockComponent<T> setParam(String name, Object val) throws SetParamException {
+    public MockComponent<T> setParam(String name, Object val) throws SetFieldException {
         Field field = ReflectUtils.getField(name, clazz);
         if (field != null) {
             if (field.isAnnotationPresent(IntParam.class) ||
@@ -61,7 +62,7 @@ public class MockComponent<T> {
                 try {
                     field.set(instance, val);
                 } catch (IllegalAccessException e) {
-                    throw new SetParamException("Field "+field.getName()+" in class "+clazz.getName()+" cannot be set");
+                    throw new SetFieldException("Field "+field.getName()+" in class "+clazz.getName()+" cannot be set");
                 } finally {
                     if (!isAccessible) {
                         field.setAccessible(false);
@@ -69,7 +70,7 @@ public class MockComponent<T> {
                 }
             }
         } else {
-            throw new SetParamException("Field "+name+" does not exist in class "+clazz.getName());
+            throw new SetFieldException("Field "+name+" does not exist in class "+clazz.getName());
         }
         return this;
     }
@@ -109,7 +110,11 @@ public class MockComponent<T> {
         return builder.toString();
     }
 
-    private void generateParams() throws SetParamException {
+    public MockPort expectPort(String name) {
+        return this.ports.get(name);
+    }
+
+    private void generateParams() throws SetFieldException {
         for (Field field: ReflectUtils.getAllFields(clazz)) {
             boolean isAccessible = field.isAccessible();
             if (!isAccessible) {
@@ -135,7 +140,27 @@ public class MockComponent<T> {
                     field.set(instance, str);
                 }
             } catch (IllegalAccessException e) {
-                throw new SetParamException("Field "+field.getName()+" in class "+clazz.getName()+" cannot be set");
+                throw new SetFieldException("Field "+field.getName()+" in class "+clazz.getName()+" cannot be set");
+            } finally {
+                if (!isAccessible) {
+                    field.setAccessible(false);
+                }
+            }
+        }
+    }
+
+    private void generatePorts() throws SetFieldException {
+        for (Field field: ReflectUtils.getAllFieldsWithAnnotation(clazz, Output.class)) {
+            boolean isAccessible = field.isAccessible();
+            if (!isAccessible) {
+                field.setAccessible(true);
+            }
+            try {
+                MockPort mockPort = new MockPort(field.getName());
+                ports.put(field.getName(), mockPort);
+                field.set(instance, mockPort);
+            } catch (IllegalAccessException e) {
+                throw new SetFieldException("Field "+field.getName()+" in class "+clazz.getName()+" cannot be set");
             } finally {
                 if (!isAccessible) {
                     field.setAccessible(false);
