@@ -11,4 +11,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface BooleanParam {}
+public @interface BooleanParam {
+    boolean optional() default true;
+    boolean fragment() default false;
+}
