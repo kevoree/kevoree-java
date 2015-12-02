@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>org.kevoree</groupId>
-            <artifactId>model</artifactId>
+            <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

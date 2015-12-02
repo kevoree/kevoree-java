@@ -13,9 +13,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.kevoree.kcl</groupId>
-            <artifactId>org.kevoree.kcl</artifactId>
-            <version>${kcl.version}</version>
+            <groupId>org.kevoree.tool</groupId>
+            <artifactId>injector</artifactId>
+            <version>${kevoree.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

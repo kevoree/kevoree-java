@@ -9,4 +9,8 @@ public interface NodeInstance {
     AdaptationPrimitive getAddInstance();
 
     AdaptationPrimitive getRemoveInstance();
+
+    AdaptationPrimitive getAddDeployUnit();
+
+    AdaptationPrimitive getRemoveDeployUnit();
 }

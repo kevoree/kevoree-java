@@ -66,6 +66,8 @@ class org.kevoree.Metric extends org.kevoree.Element {
 }
 
 class org.kevoree.TypeDefinition extends org.kevoree.Element {
+    with instantiation "false"
+
     att name: String
     att version: String
 

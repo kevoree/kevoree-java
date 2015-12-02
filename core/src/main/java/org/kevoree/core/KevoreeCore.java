@@ -1,9 +1,12 @@
 package org.kevoree.core;
 
 import org.KevoreeModel;
+import org.KevoreeView;
 import org.kevoree.Component;
 import org.kevoree.Model;
 import org.kevoree.Node;
+import org.kevoree.api.callback.DeployCallback;
+import org.kevoree.api.service.ModelService;
 import org.kevoree.meta.MetaComponent;
 import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
@@ -15,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class KevoreeCore implements Runnable {
+public class KevoreeCore implements Runnable, ModelService {
 
     private KevoreeModel kModel;
     private Model model;
@@ -26,18 +29,12 @@ public class KevoreeCore implements Runnable {
         kModel = new KevoreeModel(DataManagerBuilder.create().withContentDeliveryDriver(new org.kevoree.modeling.drivers.websocket.WebSocketPeer(url)).build());
         kModel.connect(o -> {
             KListener listener = kModel.createListener(0);
-            kModel.manager().getRoot(0, System.currentTimeMillis(), potentialRoot -> {
-                if (potentialRoot == null) {
-                    potentialRoot = kModel.createModel(0, System.currentTimeMillis());
-                    model = (Model) potentialRoot;
-                    kModel.manager().setRoot(potentialRoot, throwable -> {
-                        if (throwable != null) {
-                            throwable.printStackTrace();
-                        }
-                        kModel.save(null);
-                    });
+            kModel.manager().index(0, System.currentTimeMillis(), "root", index -> {
+                if (index == null) {
+                    model = kModel.createModel(0, System.currentTimeMillis());
+                    kModel.save(null);
                 } else {
-                    model = (Model) potentialRoot;
+                    model = (Model) index;
                 }
 
                 model.traversal()
@@ -59,24 +56,15 @@ public class KevoreeCore implements Runnable {
         });
     }
 
-    public Model model() {
-        return model;
-    }
-
-    public Node node() {
-        return node;
-    }
-
     @Override
     public void run() {
         //Here we check the consistency of the kModel according to
-        Node currentNode = node();
-        if (currentNode != null) {
-            currentNode.jump(System.currentTimeMillis(), (KObject currentNodeUncasted) -> {
+        if (node != null) {
+            node.jump(System.currentTimeMillis(), (KObject currentNodeUncasted) -> {
                 Node newNode = (Node) currentNodeUncasted;
                 newNode.getComponents(components -> {
                     for (Component c : components) {
-                        currentNode.traversal()
+                        node.traversal()
                                 .traverse(MetaNode.REL_COMPONENTS)
                                 .withAttribute(MetaComponent.ATT_NAME, c.getName())
                                 .then(comps -> {
@@ -90,7 +78,7 @@ public class KevoreeCore implements Runnable {
                 });
                 newNode.getSubNodes(subNodes -> {
                     for (Node n : subNodes) {
-                        currentNode.traversal()
+                        node.traversal()
                                 .traverse(MetaNode.REL_SUBNODES)
                                 .withAttribute(MetaNode.ATT_NAME, n.getName())
                                 .then(nodes -> {
@@ -105,5 +93,18 @@ public class KevoreeCore implements Runnable {
                 node = newNode;
             });
         }
+    }
+
+    @Override
+    public Model getModel() {
+        return model;
+    }
+
+    @Override
+    public void deploy(Model model, DeployCallback callback) {
+        kModel.connect(o -> {
+            KevoreeView kView = kModel.universe(0).time(System.currentTimeMillis());
+
+        });
     }
 }

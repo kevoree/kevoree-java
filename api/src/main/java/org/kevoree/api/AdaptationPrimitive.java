@@ -1,6 +1,9 @@
 package org.kevoree.api;
 
+import org.kevoree.Instance;
+import org.kevoree.Model;
+
 public interface AdaptationPrimitive {
 
-    void run(Object ctx);
+    void run(Model model, Instance instance);
 }

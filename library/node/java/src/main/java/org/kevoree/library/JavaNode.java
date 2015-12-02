@@ -1,28 +1,42 @@
 package org.kevoree.library;
 
 import org.kevoree.annotations.Node;
-import org.kevoree.api.Command;
-import org.kevoree.library.command.AddInstance;
-import org.kevoree.library.command.RemoveInstance;
+import org.kevoree.api.AdaptationPrimitive;
+import org.kevoree.api.NodeInstance;
+import org.kevoree.library.adaptation.AddDeployUnit;
+import org.kevoree.library.adaptation.AddInstance;
+import org.kevoree.library.adaptation.RemoveDeployUnit;
+import org.kevoree.library.adaptation.RemoveInstance;
 
 /**
  *
  * Created by mleduc on 23/11/15.
  */
 @Node
-public class JavaNode implements org.kevoree.api.NodeInstance {
+public class JavaNode implements NodeInstance {
 
-    private final Command addInstance = new AddInstance();
-    private final Command removeInstance = new RemoveInstance();
+    private final AdaptationPrimitive addInstance = new AddInstance();
+    private final AdaptationPrimitive removeInstance = new RemoveInstance();
+    private final AdaptationPrimitive addDeployUnit = new AddDeployUnit();
+    private final AdaptationPrimitive removeDeployUnit = new RemoveDeployUnit();
 
     @Override
-    public Command getAddInstance() {
+    public AdaptationPrimitive getAddInstance() {
         return addInstance;
     }
 
     @Override
-    public Command getRemoveInstance() {
+    public AdaptationPrimitive getRemoveInstance() {
         return removeInstance;
     }
 
+    @Override
+    public AdaptationPrimitive getAddDeployUnit() {
+        return addDeployUnit;
+    }
+
+    @Override
+    public AdaptationPrimitive getRemoveDeployUnit() {
+        return removeDeployUnit;
+    }
 }
