@@ -17,12 +17,14 @@ public class MockPort implements OutputPort {
     private int msgCount;
     private int expectedMsgCount;
     private CountDownLatch countDown;
+    private boolean async;
     private int timeout;
 
     public MockPort(String name) {
         this.name = name;
         this.msgCount = 0;
         this.expectedMsgCount = 0;
+        this.async = false;
         this.timeout = TIMEOUT;
     }
 
@@ -33,6 +35,7 @@ public class MockPort implements OutputPort {
     }
 
     public void async(int timeout) {
+        this.async = true;
         this.timeout = timeout;
     }
 
@@ -40,12 +43,10 @@ public class MockPort implements OutputPort {
         this.async(TIMEOUT);
     }
 
-    public void asyncVerify() throws InterruptedException {
-        this.countDown.await(timeout, TimeUnit.MILLISECONDS);
-        verify();
-    }
-
-    public void verify() {
+    public void verify() throws InterruptedException {
+        if (async) {
+            this.countDown.await(timeout, TimeUnit.MILLISECONDS);
+        }
         if (msgCount != expectedMsgCount) {
             throw new AssertionError("OutputPort "+name+" (expected="+expectedMsgCount+", actual="+msgCount+")");
         }

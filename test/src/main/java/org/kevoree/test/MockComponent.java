@@ -113,13 +113,9 @@ public class MockComponent<T> {
         return this.ports.get(name);
     }
 
-    public void verifyPorts() {
-        this.ports.values().forEach(MockPort::verify);
-    }
-
-    public void verifyAsyncPorts() throws InterruptedException {
+    public void verifyPorts() throws InterruptedException {
         for (MockPort port: this.ports.values()) {
-            port.asyncVerify();
+            port.verify();
         }
     }
 
