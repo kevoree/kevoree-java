@@ -70,8 +70,8 @@ public class TestTypeModel {
             schema.setName("schema");
             schema.setValue("{\"type\": \"number\"}");
             tickProto.addMetaData(schema);
-            tick.addProtocol(tickProto);
-*/
+            tick.addProtocol(tickProto);*/
+
             kView.json().save(model, modelStr -> {
                 System.out.println(modelStr);
                 kModel.disconnect(t -> {});
