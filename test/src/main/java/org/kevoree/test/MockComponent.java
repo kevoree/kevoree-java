@@ -5,7 +5,6 @@ import org.kevoree.annotations.Output;
 import org.kevoree.annotations.params.BooleanParam;
 import org.kevoree.annotations.params.IntParam;
 import org.kevoree.annotations.params.StringParam;
-import org.kevoree.api.OutputPort;
 import org.kevoree.test.exception.CreateMockException;
 import org.kevoree.test.exception.SetFieldException;
 import org.kevoree.tool.ReflectUtils;
@@ -112,6 +111,16 @@ public class MockComponent<T> {
 
     public MockPort expectPort(String name) {
         return this.ports.get(name);
+    }
+
+    public void verifyPorts() {
+        this.ports.values().forEach(MockPort::verify);
+    }
+
+    public void verifyAsyncPorts() throws InterruptedException {
+        for (MockPort port: this.ports.values()) {
+            port.asyncVerify();
+        }
     }
 
     private void generateParams() throws SetFieldException {

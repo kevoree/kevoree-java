@@ -20,14 +20,16 @@ public class TestOutputComp {
     @Test
     public void testStart() {
         OutputComp comp = mock.get();
+        mock.expectPort("port").toBeCalled(1);
         comp.start();
-        mock.expectPort("port").toSendAnyString();
+        mock.verifyPorts();
     }
 
     @Test
     public void testAsyncStart() throws InterruptedException {
         OutputComp comp = mock.get();
+        mock.expectPort("port").toBeCalled(1).async();
         comp.asyncStart();
-        mock.expectPort("port").toSendAnyString(5000);
+        mock.verifyAsyncPorts();
     }
 }
