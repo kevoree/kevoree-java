@@ -19,6 +19,21 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>fr.braindead</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.braindead</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.kevoree.modeling</groupId>
             <artifactId>org.kevoree.modeling.microframework.browser</artifactId>
             <version>${kmf.version}</version>
@@ -38,6 +53,7 @@
             <artifactId>org.kevoree.modeling.microframework.addons.template</artifactId>
             <version>${kmf.version}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -53,7 +69,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.kevoree.server.App</mainClass>
+                            <mainClass>org.kevoree.server.ClientTest</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
