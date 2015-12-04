@@ -12,6 +12,7 @@ import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
 import org.kevoree.modeling.KListener;
 import org.kevoree.modeling.KObject;
+import org.kevoree.modeling.cdn.KContentDeliveryDriver;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 
 import java.util.concurrent.Executors;
@@ -26,7 +27,8 @@ public class KevoreeCore implements Runnable, ModelService {
     private final ScheduledExecutorService monoScheduler = Executors.newSingleThreadScheduledExecutor();
 
     public void boot(String url, String nodeName) {
-        kModel = new KevoreeModel(DataManagerBuilder.create().withContentDeliveryDriver(new org.kevoree.modeling.drivers.websocket.WebSocketPeer(url)).build());
+        KContentDeliveryDriver cdd = new org.kevoree.modeling.drivers.websocket.WebSocketPeer(url);
+        kModel = new KevoreeModel(DataManagerBuilder.create().withContentDeliveryDriver(cdd).build());
         kModel.connect(o -> {
             KListener listener = kModel.createListener(0);
             kModel.manager().index(0, System.currentTimeMillis(), "root", index -> {
@@ -106,5 +108,10 @@ public class KevoreeCore implements Runnable, ModelService {
             KevoreeView kView = kModel.universe(0).time(System.currentTimeMillis());
 
         });
+    }
+
+    public static void main(String[] args) {
+        KevoreeCore core = new KevoreeCore();
+        core.boot("ws://localhost:3080", "node0");
     }
 }

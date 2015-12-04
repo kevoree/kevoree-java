@@ -5,24 +5,26 @@ import org.KevoreeUniverse;
 import org.KevoreeView;
 import org.junit.Test;
 import org.kevoree.*;
-import org.kevoree.meta.MetaComponent;
-import org.kevoree.meta.MetaModel;
-import org.kevoree.meta.MetaNode;
-import org.kevoree.meta.MetaOutputPort;
+import org.kevoree.meta.*;
 import org.kevoree.modeling.KObject;
+import org.kevoree.modeling.addons.rest.RestGateway;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
+import org.kevoree.modeling.meta.KMetaAttribute;
+import org.kevoree.modeling.meta.impl.MetaAttribute;
 
 /**
+ *
  * Created by leiko on 12/2/15.
  */
 public class TestInstanceModel {
 
-    @Test
+    //@Test
     public void test() {
         KevoreeModel kModel = new KevoreeModel(DataManagerBuilder.buildDefault());
         kModel.connect(o -> {
-            KevoreeUniverse kUniverse = kModel.universe(0);
-            KevoreeView kView = kUniverse.time(System.currentTimeMillis());
+            RestGateway.expose(kModel, 8050).start();
+
+            KevoreeView kView = kModel.universe(0).time(0);
             Model model = kView.createModel();
 
             Node node0 = kView.createNode();
@@ -43,24 +45,25 @@ public class TestInstanceModel {
             tickPort.addChannels(chan);
             model.addChannels(chan);
 
-            kView.json().save(model, modelStr -> {
-                kView.json().load(modelStr, loadedModel -> {
-                    System.out.println(loadedModel);
-                    Model newModel = (Model) loadedModel;
-                    newModel.traversal()
-                            .traverse(MetaModel.REL_NODES)
-                            .withAttribute(MetaNode.ATT_NAME, "node0")
-                            .traverse(MetaNode.REL_COMPONENTS)
-                            .withAttribute(MetaComponent.ATT_NAME, "ticker")
-                            .traverse(MetaComponent.REL_OUTPUTS)
-                            .withAttribute(MetaOutputPort.ATT_NAME, "tick")
-                            .then(results -> {
-                                for (KObject res : results) {
-                                    System.out.println(res.toJSON());
-                                }
-                            });
-                });
-            });
+            Group group = kView.createGroup();
+            group.setName("group");
+            group.addNodes(node0);
+            model.addGroups(group);
+
+            NodeType nodeType = kView.createNodeType();
+            nodeType.setName("JavaNode");
+            nodeType.setVersion("1");
+
+            Namespace kevoreeNamespace = kView.createNamespace();
+            kevoreeNamespace.setName("kevoree");
+            kevoreeNamespace.addTypeDefinitions(nodeType);
+            model.addNamespaces(kevoreeNamespace);
+
+            kModel.save(null);
         });
+    }
+
+    public static void main(String[] args) {
+        new TestInstanceModel().test();
     }
 }

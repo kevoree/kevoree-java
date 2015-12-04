@@ -64,14 +64,6 @@ public class TestTypeModel {
             tick.setName("tick");
             ticker.addOutputTypes(tick);
 
-            /*MsgProtocol tickProto = kView.createMsgProtocol();
-            tickProto.setName("jsonschema");
-            Value schema = kView.createValue();
-            schema.setName("schema");
-            schema.setValue("{\"type\": \"number\"}");
-            tickProto.addMetaData(schema);
-            tick.addProtocol(tickProto);*/
-
             kView.json().save(model, modelStr -> {
                 System.out.println(modelStr);
                 kModel.disconnect(t -> {});

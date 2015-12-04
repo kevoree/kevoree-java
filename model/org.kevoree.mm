@@ -13,10 +13,10 @@ class org.kevoree.Element {
 }
 
 class org.kevoree.Instance extends org.kevoree.Element {
-    att name: String
+    with instantiation "false"
+    att name: String with index
 
     rel typeDefinition: org.kevoree.TypeDefinition with maxBound 1
-    rel metrics: org.kevoree.Metric
 }
 
 class org.kevoree.Node extends org.kevoree.Instance {
@@ -43,7 +43,7 @@ class org.kevoree.Component extends org.kevoree.Instance {
 }
 
 class org.kevoree.Port extends org.kevoree.Element {
-    att name: String
+    att name: String with index
 
     rel type: org.kevoree.PortType
     rel channels: org.kevoree.Channel
@@ -55,21 +55,16 @@ class org.kevoree.InputPort extends org.kevoree.Port {}
 class org.kevoree.OutputPort extends org.kevoree.Port {}
 
 class org.kevoree.Namespace extends org.kevoree.Element {
-    att name: String
+    att name: String with index
 
     rel typeDefinitions: org.kevoree.TypeDefinition
-}
-
-class org.kevoree.Metric extends org.kevoree.Element {
-    att name: String
-    att value: Continuous
 }
 
 class org.kevoree.TypeDefinition extends org.kevoree.Element {
     with instantiation "false"
 
-    att name: String
-    att version: String
+    att name: String with index
+    att version: String with index
 
     rel dictionary: org.kevoree.DictionaryType with maxBound 1
     rel deployUnits: org.kevoree.DeployUnit
@@ -94,9 +89,9 @@ class org.kevoree.ComponentType extends org.kevoree.TypeDefinition {
 }
 
 class org.kevoree.DeployUnit extends org.kevoree.Element {
-    att name: String
+    att name: String with index
+    att version: String with index
     att platform: String
-    att version: String
 
     rel dependencies: org.kevoree.DeployUnit
 }
@@ -106,7 +101,7 @@ class org.kevoree.DictionaryType extends org.kevoree.Element {
 }
 
 class org.kevoree.AttributeType extends org.kevoree.Element {
-    att name: String
+    att name: String with index
     att optional: Bool
     att fragment: Bool
 
@@ -114,13 +109,13 @@ class org.kevoree.AttributeType extends org.kevoree.Element {
 }
 
 class org.kevoree.PortType extends org.kevoree.Element {
-    att name: String
+    att name: String with index
 
     rel protocol: org.kevoree.Value
 }
 
 class org.kevoree.Value extends org.kevoree.Element {
-    att name: String
+    att name: String with index
     att value: String
 }
 
