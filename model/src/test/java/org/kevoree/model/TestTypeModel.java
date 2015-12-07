@@ -13,7 +13,11 @@ import org.kevoree.modeling.memory.manager.DataManagerBuilder;
  */
 public class TestTypeModel {
 
-    @Test
+
+    /**
+     * This block of code is here for compilation time test.
+     * During a meta-model development iteration you can check if it still compile and assert that you do not have created unanticipated regressions.
+     */
     public void test() {
         KevoreeModel kModel = new KevoreeModel(DataManagerBuilder.buildDefault());
         kModel.connect(o -> {

@@ -1,10 +1,8 @@
 with version "6.0.0-SNAPSHOT"
-
 class org.kevoree.Model extends org.kevoree.Element {
     rel nodes: org.kevoree.Node
     rel channels: org.kevoree.Channel
     rel groups: org.kevoree.Group
-
     rel namespaces: org.kevoree.Namespace
 }
 
@@ -14,7 +12,6 @@ class org.kevoree.Element {
 
 class org.kevoree.Instance extends org.kevoree.Element {
     att name: String
-
     rel typeDefinition: org.kevoree.TypeDefinition with maxBound 1
     rel metrics: org.kevoree.Metric
 }
@@ -37,26 +34,25 @@ class org.kevoree.Group extends org.kevoree.Instance {
 
 class org.kevoree.Component extends org.kevoree.Instance {
     rel host: org.kevoree.Node with maxBound 1
-
     rel inputs: org.kevoree.InputPort with opposite "channels"
     rel outputs: org.kevoree.OutputPort with opposite "channels"
 }
 
 class org.kevoree.Port extends org.kevoree.Element {
     att name: String
-
     rel type: org.kevoree.PortType
-    rel channels: org.kevoree.Channel
-            with opposite "inputs"
-            with opposite "outputs"
+    rel channels: org.kevoree.Channel with opposite "inputs"
+                                      with opposite "outputs"
 }
 
-class org.kevoree.InputPort extends org.kevoree.Port {}
-class org.kevoree.OutputPort extends org.kevoree.Port {}
+class org.kevoree.InputPort extends org.kevoree.Port {
+}
+
+class org.kevoree.OutputPort extends org.kevoree.Port {
+}
 
 class org.kevoree.Namespace extends org.kevoree.Element {
     att name: String
-
     rel typeDefinitions: org.kevoree.TypeDefinition
 }
 
@@ -67,15 +63,14 @@ class org.kevoree.Metric extends org.kevoree.Element {
 
 class org.kevoree.TypeDefinition extends org.kevoree.Element {
     with instantiation "false"
-
     att name: String
     att version: String
-
     rel dictionary: org.kevoree.DictionaryType with maxBound 1
     rel deployUnits: org.kevoree.DeployUnit
 }
 
-class org.kevoree.NodeType extends org.kevoree.TypeDefinition {}
+class org.kevoree.NodeType extends org.kevoree.TypeDefinition {
+}
 
 class org.kevoree.GroupType extends org.kevoree.TypeDefinition {
     att remote: Bool
@@ -88,7 +83,6 @@ class org.kevoree.ChannelType extends org.kevoree.TypeDefinition {
 
 class org.kevoree.ComponentType extends org.kevoree.TypeDefinition {
     att remote: Bool
-
     rel inputTypes: org.kevoree.PortType
     rel outputTypes: org.kevoree.PortType
 }
@@ -97,7 +91,6 @@ class org.kevoree.DeployUnit extends org.kevoree.Element {
     att name: String
     att platform: String
     att version: String
-
     rel dependencies: org.kevoree.DeployUnit
 }
 
@@ -109,13 +102,12 @@ class org.kevoree.AttributeType extends org.kevoree.Element {
     att name: String
     att optional: Bool
     att fragment: Bool
-
     rel datatype: org.kevoree.DataType with maxBound 1
+    rel constraints: org.kevoree.AbstractConstraint with maxBound 1
 }
 
 class org.kevoree.PortType extends org.kevoree.Element {
     att name: String
-
     rel protocol: org.kevoree.Value
 }
 
@@ -124,38 +116,79 @@ class org.kevoree.Value extends org.kevoree.Element {
     att value: String
 }
 
-class org.kevoree.DataType extends org.kevoree.Element {}
+class org.kevoree.DataType extends org.kevoree.Element {
+}
+
 class org.kevoree.StringDataType extends org.kevoree.DataType {
     att multiline: Bool
     att default: String
 }
+
 class org.kevoree.DoubleDataType extends org.kevoree.DataType {
     att min: Double
     att max: Double
     att default: Double
 }
+
 class org.kevoree.IntDataType extends org.kevoree.DataType {
     att min: Int
     att max: Int
     att default: Int
 }
+
 class org.kevoree.LongDataType extends org.kevoree.DataType {
     att min: Long
     att max: Long
     att default: Long
 }
+
 class org.kevoree.BooleanDataType extends org.kevoree.DataType {
     att default: Bool
 }
+
 class org.kevoree.ChoiceDataType extends org.kevoree.DataType {
     att defaultIndex: Int
-
     rel choices: org.kevoree.Item
 }
+
 class org.kevoree.ListDataType extends org.kevoree.DataType {
     rel default: org.kevoree.Item
 }
 
 class org.kevoree.Item {
     att value: String
+}
+
+class org.kevoree.AbstractConstraint extends org.kevoree.Element {
+    with instantiation "false"
+}
+
+class org.kevoree.RequiredConstraint extends org.kevoree.AbstractConstraint {}
+
+class org.kevoree.AndConstraint extends org.kevoree.AbstractConstraint {
+    rel conditions: org.kevoree.AbstractConstraint
+}
+
+class org.kevoree.OrConstraint extends org.kevoree.AbstractConstraint {
+    rel conditions: org.kevoree.AbstractConstraint
+}
+
+class org.kevoree.MinConstraint extends org.kevoree.AbstractConstraint {
+    att limit: Int
+}
+
+class org.kevoree.MaxConstraint extends org.kevoree.AbstractConstraint {
+    att limit: Int
+}
+
+class org.kevoree.MinLengthConstraint extends org.kevoree.AbstractConstraint {
+    att limit: Int
+}
+
+class org.kevoree.MaxLengthConstraint extends org.kevoree.AbstractConstraint {
+    att limit: Int
+}
+
+class org.kevoree.PatternContraint extends org.kevoree.AbstractConstraint {
+    att regex: String
 }
