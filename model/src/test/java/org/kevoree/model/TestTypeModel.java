@@ -41,6 +41,11 @@ public class TestTypeModel {
             ticker.setVersion("1");
             kevoree.addTypeDefinitions(ticker);
 
+            DeployUnit tickerDU = kView.createDeployUnit();
+            tickerDU.setName("ticker");
+            tickerDU.setPlatform("java");
+            ticker.addDeployUnits(tickerDU);
+
             DictionaryType dic = kView.createDictionaryType();
             ticker.addDictionary(dic);
 
