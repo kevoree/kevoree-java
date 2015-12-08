@@ -3,7 +3,6 @@ package org.kevoree.model;
 import org.KevoreeModel;
 import org.KevoreeUniverse;
 import org.KevoreeView;
-import org.junit.Test;
 import org.kevoree.*;
 import org.kevoree.meta.MetaNumberType;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
@@ -13,7 +12,6 @@ import org.kevoree.modeling.memory.manager.DataManagerBuilder;
  * Created by leiko on 12/2/15.
  */
 public class TestTypeModel {
-
 
     /**
      * This block of code is here for compilation time test.

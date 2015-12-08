@@ -124,19 +124,22 @@ class org.kevoree.FragmentDictionary extends org.kevoree.Dictionary {
 class org.kevoree.Param extends org.kevoree.Element {
     with instantiation "false"
 
-    att name: String with index
+    rel type: org.kevoree.ParamType
 }
 
-class org.kevoree.NumberParam extends org.kevoree.Element {
+class org.kevoree.StringParam extends org.kevoree.Param {
     att value: String
-    att type: org.kevoree.NumberType
 }
 
-class org.kevoree.BooleanParam extends org.kevoree.Element {
+class org.kevoree.NumberParam extends org.kevoree.Param {
+    att value: String
+}
+
+class org.kevoree.BooleanParam extends org.kevoree.Param {
     att value: Bool
 }
 
-class org.kevoree.ListParam extends org.kevoree.Element {
+class org.kevoree.ListParam extends org.kevoree.Param {
     rel values: org.kevoree.Item
 }
 
@@ -190,10 +193,6 @@ class org.kevoree.MinConstraint extends org.kevoree.AbstractConstraint {
 class org.kevoree.MaxConstraint extends org.kevoree.AbstractConstraint {
     att value: Int
     att exclusive: Bool
-}
-
-class org.kevoree.LengthConstraint extends org.kevoree.AbstractConstraint {
-    att value: Int
 }
 
 class org.kevoree.MultilineConstraint extends org.kevoree.AbstractConstraint {

@@ -1,9 +1,7 @@
 package org.kevoree.model;
 
 import org.KevoreeModel;
-import org.KevoreeUniverse;
 import org.KevoreeView;
-import org.junit.Before;
 import org.kevoree.*;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 
@@ -32,19 +30,6 @@ public class ConstraintsTest {
 
             paramType.addConstraints(minConstraint)
                     .addConstraints(maxConstraint);
-        });
-    }
-
-    /**
-     * Defines a parameter of type String, must have a string of length 45
-     * or match specified regex.
-     */
-    public void testLength() {
-        kModel.connect(o -> {
-            KevoreeView kView = kModel.universe(0).time(System.currentTimeMillis());
-
-            final ParamType paramType = kView.createStringParamType();
-            paramType.addConstraints(kView.createLengthConstraint().setValue(45));
         });
     }
 }
