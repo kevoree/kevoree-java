@@ -108,7 +108,7 @@ public class ReflectUtils {
      * @param annotationType The expected annotation type.
      * @return The list of fields.
      */
-    private static List<Field> getAllFieldsWithAnnotation(Class<?> clazz, Class<? extends Annotation> annotationType) {
+    public static List<Field> getAllFieldsWithAnnotation(Class<?> clazz, Class<? extends Annotation> annotationType) {
         return getAllFields(clazz)
                 .stream()
                 .filter(field -> field.isAnnotationPresent(annotationType))

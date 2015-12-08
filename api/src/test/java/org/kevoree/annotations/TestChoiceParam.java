@@ -1,14 +1,11 @@
 package org.kevoree.annotations;
 
 import org.junit.Test;
-import org.kevoree.annotations.params.ChoiceParam;
+import org.kevoree.annotations.params.Param;
 import org.kevoree.comp.FakeComp;
 import org.kevoree.tool.ReflectUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-
-import static org.junit.Assert.*;
 
 /**
  *
@@ -20,7 +17,7 @@ public class TestChoiceParam {
 
     @Test
     public void testDefault() throws IllegalAccessException {
-        Field field = ReflectUtils.findFieldWithAnnotation("myEnum", FakeComp.class, ChoiceParam.class);
+        Field field = ReflectUtils.findFieldWithAnnotation("myEnum", FakeComp.class, Param.class);
         if (field != null) {
             field.setAccessible(true);
             Object o = field.get(comp);

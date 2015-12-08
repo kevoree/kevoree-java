@@ -5,6 +5,7 @@ import org.KevoreeUniverse;
 import org.KevoreeView;
 import org.junit.Test;
 import org.kevoree.*;
+import org.kevoree.meta.MetaNumberType;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 
 /**
@@ -53,30 +54,20 @@ public class TestTypeModel {
             DictionaryType dic = kView.createDictionaryType();
             ticker.addDictionary(dic);
 
-            AttributeType random = kView.createAttributeType();
-            random.setOptional(false);
-            dic.addAttributes(random);
+            BooleanParamType random = kView.createBooleanParamType();
+            random.setRequired(true);
+            dic.addParams(random);
+            random.setDefault(false);
 
-            BooleanDataType randomType = kView.createBooleanDataType();
-            randomType.setDefault(false);
-            random.addDatatype(randomType);
-
-            AttributeType period = kView.createAttributeType();
-            period.setOptional(true);
-            dic.addAttributes(period);
-
-            IntDataType periodType = kView.createIntDataType();
-            periodType.setDefault(3000);
-            period.addDatatype(periodType);
+            NumberParamType period = kView.createNumberParamType();
+            period.setRequired(false);
+            period.setDefault("3000");
+            period.setType(MetaNumberType.LONG);
+            dic.addParams(period);
 
             PortType tick = kView.createPortType();
             tick.setName("tick");
             ticker.addOutputTypes(tick);
-
-            kView.json().save(model, modelStr -> {
-                System.out.println(modelStr);
-                kModel.disconnect(t -> {});
-            });
         });
     }
 }

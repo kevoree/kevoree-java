@@ -2,16 +2,13 @@ package org.kevoree.test;
 
 import org.kevoree.annotations.Component;
 import org.kevoree.annotations.Output;
-import org.kevoree.annotations.params.BooleanParam;
-import org.kevoree.annotations.params.IntParam;
-import org.kevoree.annotations.params.StringParam;
+import org.kevoree.annotations.params.*;
 import org.kevoree.test.exception.CreateMockException;
 import org.kevoree.test.exception.SetFieldException;
 import org.kevoree.tool.ReflectUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -33,9 +30,7 @@ public class MockComponent<T> {
 
         this.clazz = clazz;
         this.paramAnnotations = new ArrayList<>();
-        this.paramAnnotations.add(BooleanParam.class);
-        this.paramAnnotations.add(StringParam.class);
-        this.paramAnnotations.add(IntParam.class);
+        this.paramAnnotations.add(Param.class);
 
         try {
             instance = clazz.newInstance();
@@ -51,9 +46,7 @@ public class MockComponent<T> {
     public MockComponent<T> setParam(String name, Object val) throws SetFieldException {
         Field field = ReflectUtils.getField(name, clazz);
         if (field != null) {
-            if (field.isAnnotationPresent(IntParam.class) ||
-                    field.isAnnotationPresent(BooleanParam.class) ||
-                    field.isAnnotationPresent(StringParam.class)) {
+            if (field.isAnnotationPresent(Param.class)) {
                 boolean isAccessible = field.isAccessible();
                 if (!isAccessible) {
                     field.setAccessible(true);
@@ -127,20 +120,74 @@ public class MockComponent<T> {
             }
             try {
                 Random random = new Random();
-                if (field.isAnnotationPresent(IntParam.class)) {
-                    IntParam anno = field.getAnnotation(IntParam.class);
-                    int max = anno.max();
-                    if (max == Integer.MAX_VALUE) {
+                Number min = null;
+                if (field.isAnnotationPresent(Min.class)) {
+                    min = field.getAnnotation(Min.class).value();
+                }
+                Number max = null;
+                if (field.isAnnotationPresent(Max.class)) {
+                    max = field.getAnnotation(Max.class).value();
+                }
+                Integer length = null;
+                if (field.isAnnotationPresent(Length.class)) {
+                    length = field.getAnnotation(Length.class).value();
+                }
+
+                if (field.getType().equals(Integer.class)) {
+                    min = min == null ? Integer.MIN_VALUE : min;
+                    max = max == null ? Integer.MAX_VALUE : max;
+                    if (max.intValue() == Integer.MAX_VALUE) {
                         max = Integer.MAX_VALUE - 1;
                     }
-                    field.set(instance, ThreadLocalRandom.current().nextInt(anno.min(), max + 1));
-                } else if (field.isAnnotationPresent(BooleanParam.class)) {
+                    field.set(instance, ThreadLocalRandom.current().nextInt(min.intValue(), max.intValue() + 1));
+
+                } else if (field.getType().equals(Long.class)) {
+                    min = min == null ? Long.MIN_VALUE : min;
+                    max = max == null ? Long.MAX_VALUE : max;
+                    if (max.longValue() == Long.MAX_VALUE) {
+                        max = Long.MAX_VALUE - 1;
+                    }
+                    field.set(instance, ThreadLocalRandom.current().nextLong(min.longValue(), max.longValue() + 1));
+
+                } else if (field.getType().equals(Short.class)) {
+                    min = min == null ? Short.MIN_VALUE : min;
+                    max = max == null ? Short.MAX_VALUE : max;
+                    if (max.shortValue() == Short.MAX_VALUE) {
+                        max = Short.MAX_VALUE - 1;
+                    }
+                    field.set(instance, (short) ThreadLocalRandom.current().nextInt(min.shortValue(), max.shortValue() + 1));
+
+                } else if (field.getType().equals(Double.class)) {
+                    min = min == null ? Double.MIN_VALUE : min;
+                    max = max == null ? Double.MAX_VALUE : max;
+                    if (max.doubleValue() == Double.MAX_VALUE) {
+                        max = Double.MAX_VALUE - 1;
+                    }
+                    field.set(instance, ThreadLocalRandom.current().nextDouble(min.doubleValue(), max.doubleValue() + 1));
+
+                } else if (field.getType().equals(Float.class)) {
+                    min = min == null ? Float.MIN_VALUE : min;
+                    max = max == null ? Float.MAX_VALUE : max;
+                    if (max.floatValue() == Float.MAX_VALUE) {
+                        max = Float.MAX_VALUE - 1;
+                    }
+                    field.set(instance, ThreadLocalRandom.current().nextFloat() * (max.floatValue() - min.floatValue()) + min.floatValue());
+
+                } else if (field.getType().equals(Boolean.class)) {
                     field.set(instance, random.nextBoolean());
-                } else if (field.isAnnotationPresent(StringParam.class)) {
-                    StringParam anno = field.getAnnotation(StringParam.class);
-                    String str = new BigInteger(130, random).toString(32);
-                    if (anno.multiline()) {
-                        str = str.substring(0, 16) + "\n" + str.substring(15);
+
+                } else if (field.getType().equals(String.class)) {
+                    String str = "";
+                    if (length != null) {
+                        str = randomStr(0, length);
+                    } else {
+                        min = min == null ? random.nextInt(100) : min;
+                        max = max == null ? random.nextInt(250) : max;
+                        str = randomStr(min.intValue(), max.intValue());
+                    }
+
+                    if (field.isAnnotationPresent(Multiline.class)) {
+                        str = str.substring(0, str.length()/2) + "\n" + str.substring((str.length()/2));
                     }
                     field.set(instance, str);
                 }
@@ -172,5 +219,16 @@ public class MockComponent<T> {
                 }
             }
         }
+    }
+
+    private String randomStr(int min, int max) {
+        char[] chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 &é\"'(-è_çà)=#~²{[|`\\^@]}^$ù*¨£%µ!§:/;.,?<>*-+ø".toCharArray();
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < (max - min); i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
+        return sb.toString();
     }
 }

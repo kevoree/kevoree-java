@@ -7,13 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  *
- * Created by leiko on 11/30/15.
+ * Created by leiko on 12/8/15.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface IntParam {
-    boolean optional() default true;
-    boolean fragment() default false;
-    int min() default Integer.MIN_VALUE;
-    int max() default Integer.MAX_VALUE;
+public @interface Param {
 }

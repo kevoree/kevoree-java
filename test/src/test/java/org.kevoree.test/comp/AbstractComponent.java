@@ -1,6 +1,6 @@
 package org.kevoree.test.comp;
 
-import org.kevoree.annotations.params.IntParam;
+import org.kevoree.annotations.params.Param;
 
 /**
  *
@@ -8,6 +8,6 @@ import org.kevoree.annotations.params.IntParam;
  */
 public abstract class AbstractComponent implements IComponent {
 
-    @IntParam
+    @Param
     private int param0;
 }

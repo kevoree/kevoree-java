@@ -1,6 +1,7 @@
 package org.kevoree.test.comp;
 
-import org.kevoree.annotations.params.StringParam;
+import org.kevoree.annotations.params.Multiline;
+import org.kevoree.annotations.params.Param;
 
 /**
  *
@@ -8,7 +9,8 @@ import org.kevoree.annotations.params.StringParam;
  */
 public class SubAbstractComp extends AbstractComponent {
 
-    @StringParam(multiline = true)
+    @Param
+    @Multiline
     private String param1;
 
     @Override

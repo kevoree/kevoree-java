@@ -1,8 +1,7 @@
 package org.kevoree.test.comp;
 
 import org.kevoree.annotations.Component;
-import org.kevoree.annotations.params.BooleanParam;
-import org.kevoree.annotations.params.IntParam;
+import org.kevoree.annotations.params.Param;
 
 /**
  *
@@ -11,10 +10,10 @@ import org.kevoree.annotations.params.IntParam;
 @Component
 public class FakeComp {
 
-    @IntParam
+    @Param
     private int intVal = 42;
 
-    @BooleanParam
+    @Param
     private boolean boolVal = false;
 
     public int getIntVal() {

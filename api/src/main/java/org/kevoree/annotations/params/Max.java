@@ -7,12 +7,11 @@ import java.lang.annotation.Target;
 
 /**
  *
- * Created by leiko on 11/30/15.
+ * Created by leiko on 12/8/15.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface StringParam {
-    boolean optional() default true;
-    boolean fragment() default false;
-    boolean multiline() default false;
+public @interface Max {
+    int value();
+    boolean exclusive() default false;
 }

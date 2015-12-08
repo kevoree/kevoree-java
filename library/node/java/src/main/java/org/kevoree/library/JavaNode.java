@@ -1,7 +1,7 @@
 package org.kevoree.library;
 
 import org.kevoree.annotations.Node;
-import org.kevoree.annotations.params.ChoiceParam;
+import org.kevoree.annotations.params.Param;
 import org.kevoree.api.AdaptationPrimitive;
 import org.kevoree.api.NodeInstance;
 import org.kevoree.library.adaptation.AddDeployUnit;
@@ -16,7 +16,7 @@ import org.kevoree.library.adaptation.RemoveInstance;
 @Node("JavaNode platform")
 public class JavaNode implements NodeInstance {
 
-    @ChoiceParam
+    @Param
     private LogLevel logLevel = LogLevel.INFO;
 
     private final AdaptationPrimitive addInstance = new AddInstance();

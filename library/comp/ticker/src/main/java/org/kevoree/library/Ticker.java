@@ -1,8 +1,7 @@
 package org.kevoree.library;
 
 import org.kevoree.annotations.*;
-import org.kevoree.annotations.params.BooleanParam;
-import org.kevoree.annotations.params.IntParam;
+import org.kevoree.annotations.params.*;
 import org.kevoree.api.OutputPort;
 
 import java.util.Random;
@@ -17,10 +16,13 @@ import java.util.concurrent.TimeUnit;
 @Component(description = "TODO")
 public class Ticker {
 
-    @IntParam
+    @Param
+    @Required
+    @Min(1)
     private int period = 3000;
 
-    @BooleanParam
+    @Param
+    @Required
     private boolean random = false;
 
     @Output

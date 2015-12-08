@@ -1,7 +1,9 @@
 package org.kevoree.test.comp;
 
-import org.kevoree.annotations.params.IntParam;
-import org.kevoree.annotations.params.StringParam;
+import org.kevoree.annotations.params.Max;
+import org.kevoree.annotations.params.Min;
+import org.kevoree.annotations.params.Multiline;
+import org.kevoree.annotations.params.Param;
 
 /**
  *
@@ -9,10 +11,13 @@ import org.kevoree.annotations.params.StringParam;
  */
 public class SubFakeComp extends FakeComp {
 
-    @StringParam(multiline = true)
+    @Param
+    @Multiline
     private String stringVal;
 
-    @IntParam(min = 0, max = 10)
+    @Param
+    @Min(0)
+    @Max(10)
     private int intVal;
 
     public String getStringVal() {
