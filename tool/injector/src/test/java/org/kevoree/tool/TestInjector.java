@@ -2,15 +2,13 @@ package org.kevoree.tool;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.kevoree.Channel;
 import org.kevoree.Component;
 import org.kevoree.annotations.inject.KevoreeInject;
-import org.kevoree.api.context.ChannelContext;
 import org.kevoree.api.context.ComponentContext;
 import org.kevoree.tool.comp.ComponentContextImpl;
 import org.kevoree.tool.comp.FakeComp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
