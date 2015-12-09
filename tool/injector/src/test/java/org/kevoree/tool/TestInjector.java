@@ -2,7 +2,10 @@ package org.kevoree.tool;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.kevoree.Channel;
 import org.kevoree.Component;
+import org.kevoree.annotations.inject.KevoreeInject;
+import org.kevoree.api.context.ChannelContext;
 import org.kevoree.api.context.ComponentContext;
 import org.kevoree.tool.comp.ComponentContextImpl;
 import org.kevoree.tool.comp.FakeComp;
@@ -24,7 +27,7 @@ public class TestInjector {
 
     @Before
     public void setUp() {
-        this.injector = new Injector();
+        this.injector = new Injector(KevoreeInject.class);
         this.comp = new FakeComp();
         this.injector.register(ComponentContext.class, new ComponentContextImpl(NAME, INSTANCE, NODE_NAME));
     }
