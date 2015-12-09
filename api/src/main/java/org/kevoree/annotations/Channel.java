@@ -1,16 +1,11 @@
 package org.kevoree.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/**
- * Created by mleduc on 19/11/15.
- */
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
+@Documented
 public @interface Channel {
     String description() default "";
+    int version();
 }

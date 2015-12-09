@@ -7,7 +7,7 @@ import org.kevoree.annotations.params.Param;
 /**
  *
  */
-@Group(description = "TODO")
+@Group(description = "TODO", version = 6)
 public class WSGroup {
 
 

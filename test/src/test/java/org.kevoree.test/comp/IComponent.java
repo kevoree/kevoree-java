@@ -9,7 +9,7 @@ import org.kevoree.annotations.Update;
  *
  * Created by leiko on 12/1/15.
  */
-@Component
+@Component(version = 42)
 public interface IComponent {
 
     @Start void start();

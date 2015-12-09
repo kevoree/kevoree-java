@@ -7,7 +7,7 @@ import org.kevoree.annotations.params.Param;
  *
  * Created by leiko on 12/2/15.
  */
-@Component
+@Component(version = 42)
 public class FakeComp {
 
     public enum MyEnum { ONE, TWO, THREE }

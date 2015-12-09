@@ -4,7 +4,7 @@ import org.kevoree.annotations.Component;
 import org.kevoree.annotations.inject.KevoreeInject;
 import org.kevoree.api.context.ComponentContext;
 
-@Component
+@Component(version = 42)
 public class FakeComp {
 
     @KevoreeInject

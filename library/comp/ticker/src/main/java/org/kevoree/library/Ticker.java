@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by leiko on 11/30/15.
  */
-@Component(description = "TODO")
+@Component(description = "TODO", version = 6)
 public class Ticker {
 
     @Param

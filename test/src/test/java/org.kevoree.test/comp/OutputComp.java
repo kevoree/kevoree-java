@@ -8,7 +8,7 @@ import org.kevoree.api.OutputPort;
  *
  * Created by leiko on 12/1/15.
  */
-@Component
+@Component(version = 42)
 public class OutputComp {
 
     @Output

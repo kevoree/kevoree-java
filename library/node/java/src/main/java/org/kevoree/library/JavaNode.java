@@ -9,11 +9,7 @@ import org.kevoree.library.adaptation.AddInstance;
 import org.kevoree.library.adaptation.RemoveDeployUnit;
 import org.kevoree.library.adaptation.RemoveInstance;
 
-/**
- *
- * Created by mleduc on 23/11/15.
- */
-@Node("JavaNode platform")
+@Node(description = "JavaNode platform", version = 6)
 public class JavaNode implements NodeInstance {
 
     @Param
