@@ -12,6 +12,10 @@
         <version>6.0.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <kmf.version>4.27.1-SNAPSHOT</kmf.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.kevoree</groupId>
@@ -35,17 +39,17 @@
         </dependency>
         <dependency>
             <groupId>org.kevoree.modeling</groupId>
-            <artifactId>org.kevoree.modeling.microframework.browser</artifactId>
+            <artifactId>microframework.browser</artifactId>
             <version>${kmf.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.kevoree.modeling</groupId>
-            <artifactId>org.kevoree.modeling.microframework.drivers.leveldb</artifactId>
+            <groupId>org.kevoree.modeling.plugin</groupId>
+            <artifactId>leveldb</artifactId>
             <version>${kmf.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.kevoree.modeling</groupId>
-            <artifactId>org.kevoree.modeling.microframework.drivers.websocket</artifactId>
+            <groupId>org.kevoree.modeling.plugin</groupId>
+            <artifactId>websocket</artifactId>
             <version>${kmf.version}</version>
         </dependency>
 

@@ -11,9 +11,8 @@
     <packaging>pom</packaging>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kevoree.version>6.0.0-SNAPSHOT</kevoree.version>
-        <kmf.version>4.26.1-SNAPSHOT</kmf.version>
-        <kcl.version>22</kcl.version>
     </properties>
 
     <modules>
@@ -34,6 +33,7 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>

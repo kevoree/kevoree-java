@@ -3,15 +3,15 @@ package org.kevoree.server;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
-import org.kevoree.modeling.drivers.leveldb.LevelDbContentDeliveryDriver;
-import org.kevoree.modeling.drivers.websocket.gateway.WebSocketGateway;
+import org.kevoree.modeling.plugin.LevelDBPlugin;
+import org.kevoree.modeling.plugin.WebSocketGateway;
 
 import java.io.IOException;
 
 public class App {
 
     public static void main(String[] args) throws IOException {
-        LevelDbContentDeliveryDriver db = new LevelDbContentDeliveryDriver("db");
+        LevelDBPlugin db = new LevelDBPlugin("db");
         db.connect(throwable -> {
             WebSocketGateway gateway = WebSocketGateway.expose(db, 3080);
             gateway.start();

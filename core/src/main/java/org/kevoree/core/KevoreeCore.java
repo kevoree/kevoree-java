@@ -27,8 +27,8 @@ public class KevoreeCore implements Runnable, ModelService {
     private final ScheduledExecutorService monoScheduler = Executors.newSingleThreadScheduledExecutor();
 
     public void boot(String url, String nodeName) {
-        KContentDeliveryDriver cdd = new org.kevoree.modeling.drivers.websocket.WebSocketPeer(url);
-        kModel = new KevoreeModel(DataManagerBuilder.create().withContentDeliveryDriver(cdd).build());
+//        KContentDeliveryDriver cdd = new WebSocketPeer(url);
+        kModel = new KevoreeModel(DataManagerBuilder.buildDefault());
         kModel.connect(o -> {
             KListener listener = kModel.createListener(0);
             kModel.manager().index(0, System.currentTimeMillis(), "root", index -> {

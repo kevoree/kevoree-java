@@ -17,8 +17,8 @@ public class ReflectUtils {
      * @param annotationType The annotation type to find.
      * @return The annotation, null if not found.
      */
-    public static Annotation findAnnotation(Class<?> clazz, Class<? extends Annotation> annotationType) {
-        Annotation a = clazz.getAnnotation(annotationType);
+    public static <T extends Annotation> T findAnnotation(Class<?> clazz, Class<T> annotationType) {
+        T a = clazz.getAnnotation(annotationType);
         if (a != null) {
             return a;
         }
@@ -58,12 +58,19 @@ public class ReflectUtils {
     }
 
     /**
-     * @param clazz          The class
-     * @param annotationType The annotation type expected
-     * @return True if found, False if not.
+     *
+     * @param clazz           The class
+     * @param annotationTypes The annotation types expected
+     * @return True if one of the given annotation types is found, False otherwise
      */
-    public static boolean hasAnnotation(Class<?> clazz, Class<? extends Annotation> annotationType) {
-        return findAnnotation(clazz, annotationType) != null;
+    @SafeVarargs
+    public static boolean hasAnnotation(Class<?> clazz, Class<? extends Annotation>... annotationTypes) {
+        for (Class<? extends Annotation> anno : annotationTypes) {
+            if (findAnnotation(clazz, anno) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -137,6 +144,7 @@ public class ReflectUtils {
      * @param annotationTypes The annotation types
      * @return The list of fields.
      */
+    @SafeVarargs
     public static List<Field> getAllFieldsWithAnnotations(Class<?> clazz, Class<? extends Annotation>... annotationTypes) {
         return getAllFieldsWithAnnotations(clazz, Arrays.asList(annotationTypes));
     }

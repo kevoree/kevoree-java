@@ -30,7 +30,7 @@ public class TestTypeModel {
 
             NodeType javaNode = kView.createNodeType();
             javaNode.setName("JavaNode");
-            javaNode.setVersion("1");
+            javaNode.setVersion(1);
             kevoree.addTypeDefinitions(javaNode);
 
             DeployUnit du = kView.createDeployUnit();
@@ -41,7 +41,7 @@ public class TestTypeModel {
 
             ComponentType ticker = kView.createComponentType();
             ticker.setName("Ticker");
-            ticker.setVersion("1");
+            ticker.setVersion(1);
             kevoree.addTypeDefinitions(ticker);
 
             DeployUnit tickerDU = kView.createDeployUnit();

@@ -68,7 +68,8 @@ class org.kevoree.TypeDefinition extends org.kevoree.Element {
     with instantiation "false"
 
     att name: String with index
-    att version: String with index
+    att version: Int with index
+    att description: String
 
     rel dictionary: org.kevoree.DictionaryType with maxBound 1
     rel deployUnits: org.kevoree.DeployUnit
@@ -123,6 +124,8 @@ class org.kevoree.FragmentDictionary extends org.kevoree.Dictionary {
 
 class org.kevoree.Param extends org.kevoree.Element {
     with instantiation "false"
+
+    att name: String with index
 
     rel type: org.kevoree.ParamType
 }

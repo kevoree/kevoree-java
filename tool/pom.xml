@@ -16,7 +16,7 @@
 
     <modules>
         <module>injector</module>
-        <module>model-generator</module>
+        <module>maven-plugin</module>
         <module>reflect-utils</module>
         <module>server</module>
     </modules>

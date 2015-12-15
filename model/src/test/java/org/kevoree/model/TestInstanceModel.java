@@ -45,7 +45,7 @@ public class TestInstanceModel {
 
             NodeType nodeType = kView.createNodeType();
             nodeType.setName("JavaNode");
-            nodeType.setVersion("1");
+            nodeType.setVersion(1);
 
             Namespace kevoreeNamespace = kView.createNamespace();
             kevoreeNamespace.setName("kevoree");
