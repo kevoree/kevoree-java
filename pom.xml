@@ -22,6 +22,7 @@
         <module>tool</module>
         <module>core</module>
         <module>library</module>
+        <module>adaptation</module>
     </modules>
 
     <build>
