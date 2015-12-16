@@ -58,13 +58,12 @@ public class ModelGeneratorMojo extends AbstractMojo {
     @Parameter(required = true)
     private String namespace;
 
-    private CountDownLatch latch = new CountDownLatch(1);
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().debug("Kevoree Model Generator - Reading project...");
 
         try {
+            final CountDownLatch latch = new CountDownLatch(1);
             kModel.connect(new KCallback() {
                 @Override
                 public void on(Object o) {
@@ -101,7 +100,7 @@ public class ModelGeneratorMojo extends AbstractMojo {
     }
 
     private void saveModel(Model model) throws IOException {
-        final File modelFile = new File(modelDir + File.separator + "lib.json");
+        final File modelFile = new File(modelDir + File.separator + "kevoree-model.json");
         if (modelFile.exists()) {
             modelFile.delete();
         }
