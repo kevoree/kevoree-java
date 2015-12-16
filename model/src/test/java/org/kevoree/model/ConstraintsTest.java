@@ -3,6 +3,7 @@ package org.kevoree.model;
 import org.KevoreeModel;
 import org.KevoreeView;
 import org.kevoree.*;
+import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 
 /**
@@ -17,19 +18,22 @@ public class ConstraintsTest {
      * Defines a parameter of type Long that must have a value between 1 and 5.
      */
     public void testMinMax() {
-        kModel.connect(o -> {
-            KevoreeView kView = kModel.universe(0).time(System.currentTimeMillis());
+        kModel.connect(new KCallback() {
+            @Override
+            public void on(Object o) {
+                KevoreeView kView = kModel.universe(0).time(System.currentTimeMillis());
 
-            final ParamType paramType = kView.createNumberParamType();
+                final ParamType paramType = kView.createNumberParamType();
 
-            final MinConstraint minConstraint = kView.createMinConstraint();
-            minConstraint.setValue(1);
+                final MinConstraint minConstraint = kView.createMinConstraint();
+                minConstraint.setValue(1);
 
-            final MaxConstraint maxConstraint = kView.createMaxConstraint();
-            minConstraint.setValue(5);
+                final MaxConstraint maxConstraint = kView.createMaxConstraint();
+                minConstraint.setValue(5);
 
-            paramType.addConstraints(minConstraint)
-                    .addConstraints(maxConstraint);
+                paramType.addConstraints(minConstraint)
+                        .addConstraints(maxConstraint);
+            }
         });
     }
 }

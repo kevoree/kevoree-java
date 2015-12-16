@@ -177,7 +177,7 @@ public class MockComponent<T> {
                     field.set(instance, random.nextBoolean());
 
                 } else if (field.getType().equals(String.class)) {
-                    String str = "";
+                    String str;
                     if (length != null) {
                         str = randomStr(0, length);
                     } else {

@@ -24,4 +24,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.kevoree.tool</groupId>
+                <artifactId>kevoree-maven-plugin</artifactId>
+                <configuration>
+                    <namespace>kevoree</namespace>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

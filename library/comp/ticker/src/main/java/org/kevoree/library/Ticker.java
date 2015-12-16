@@ -33,14 +33,17 @@ public class Ticker {
     @Start
     public void start() {
         executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            String msg;
-            if (random) {
-                msg = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
-            } else {
-                msg = String.valueOf(System.currentTimeMillis());
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                String msg;
+                if (random) {
+                    msg = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
+                } else {
+                    msg = String.valueOf(System.currentTimeMillis());
+                }
+                tick.send(msg);
             }
-            tick.send(msg);
         }, 0, period, TimeUnit.MILLISECONDS);
     }
 

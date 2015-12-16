@@ -80,7 +80,7 @@ public class WSClientCDD implements KContentDeliveryDriver {
     }
 
     @Override
-    public void connect(KCallback<Throwable> callback) {
+    public void connect(final KCallback<Throwable> callback) {
         try {
             this.client = new WebSocketClient(this.uri) {
                 @Override

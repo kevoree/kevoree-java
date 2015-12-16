@@ -22,26 +22,31 @@ public class OutputComp {
     }
 
     public void asyncStart() {
-        new Thread(() -> {
-            try {
-                Thread.sleep(200);
-                port.send("bar");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    port.send("bar");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-
         }).start();
     }
 
     public void complexAsyncStart() {
         start();
         asyncStart();
-        new Thread(() -> {
-            try {
-                Thread.sleep(500);
-                port2.send("yolo");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                    port2.send("yolo");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
     }

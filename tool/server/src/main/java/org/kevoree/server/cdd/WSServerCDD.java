@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import fr.braindead.websocket.handler.OnConnect;
+import fr.braindead.websocket.handler.OnMessage;
+import fr.braindead.websocket.server.WebSocketClient;
 import fr.braindead.websocket.server.WebSocketServer;
 import fr.braindead.websocket.server.WebSocketServerImpl;
 import org.kevoree.modeling.KCallback;
@@ -44,55 +47,75 @@ public class WSServerCDD implements KContentDeliveryDriver {
     private void startServer(URI uri) {
         WebSocketServer server = new WebSocketServerImpl(uri);
         server.start();
-        server.onConnect((path, client) -> client.onMessage(msg -> {
-            System.out.println("<< "+msg);
-            JsonParser parser = new JsonParser();
-            try {
-                JsonObject obj = parser.parse(msg).getAsJsonObject();
-                Gson gson = new Gson();
-                if (obj.has("action")) {
-                    switch (obj.get("action").getAsString()) {
-                        case GetMsg.ACTION:
-                            GetMsg getMsg = gson.fromJson(msg, GetMsg.class);
-                            this.cdd.get(getMsg.getKeys(), elems -> {
-                                ElemsAnswerMsg answer = new ElemsAnswerMsg(getMsg.getId(), elems);
-                                client.send(gson.toJson(answer));
-                            });
-                            break;
+        server.onConnect(new OnConnect() {
+            @Override
+            public void handle(String s, final WebSocketClient client) {
+                client.onMessage(new OnMessage() {
+                    @Override
+                    public void handle(String msg) {
+                        System.out.println("<< "+msg);
+                        JsonParser parser = new JsonParser();
+                        try {
+                            JsonObject obj = parser.parse(msg).getAsJsonObject();
+                            final Gson gson = new Gson();
+                            if (obj.has("action")) {
+                                switch (obj.get("action").getAsString()) {
+                                    case GetMsg.ACTION:
+                                        final GetMsg getMsg = gson.fromJson(msg, GetMsg.class);
+                                        cdd.get(getMsg.getKeys(), new KCallback<String[]>() {
+                                            @Override
+                                            public void on(String[] elems) {
+                                                ElemsAnswerMsg answer = new ElemsAnswerMsg(getMsg.getId(), elems);
+                                                client.send(gson.toJson(answer));
+                                            }
+                                        });
+                                        break;
 
-                        case PutMsg.ACTION:
-                            PutMsg putMsg = gson.fromJson(msg, PutMsg.class);
-                            this.cdd.put(putMsg.getKeys(), putMsg.getValues(), e -> {
-                                String error = e != null ? e.getMessage() : null;
-                                ThrowableAnswerMsg answer = new ThrowableAnswerMsg(putMsg.getId(), error);
-                                client.send(gson.toJson(answer));
-                            }, putMsg.getExcludeListener());
-                            break;
+                                    case PutMsg.ACTION:
+                                        final PutMsg putMsg = gson.fromJson(msg, PutMsg.class);
+                                        cdd.put(putMsg.getKeys(), putMsg.getValues(), new KCallback<Throwable>() {
+                                            @Override
+                                            public void on(Throwable e) {
+                                                String error = e != null ? e.getMessage() : null;
+                                                ThrowableAnswerMsg answer = new ThrowableAnswerMsg(putMsg.getId(), error);
+                                                client.send(gson.toJson(answer));
+                                            }
+                                        }, putMsg.getExcludeListener());
+                                        break;
 
-                        case RemoveMsg.ACTION:
-                            RemoveMsg removeMsg = gson.fromJson(msg, RemoveMsg.class);
-                            this.cdd.remove(removeMsg.getKeys(), e -> {
-                                String error = e != null ? e.getMessage() : null;
-                                ThrowableAnswerMsg answer = new ThrowableAnswerMsg(removeMsg.getId(), error);
-                                client.send(gson.toJson(answer));
-                            });
-                            break;
+                                    case RemoveMsg.ACTION:
+                                        final RemoveMsg removeMsg = gson.fromJson(msg, RemoveMsg.class);
+                                        cdd.remove(removeMsg.getKeys(), new KCallback<Throwable>() {
+                                            @Override
+                                            public void on(Throwable e) {
+                                                String error = e != null ? e.getMessage() : null;
+                                                ThrowableAnswerMsg answer = new ThrowableAnswerMsg(removeMsg.getId(), error);
+                                                client.send(gson.toJson(answer));
+                                            }
+                                        });
+                                        break;
 
-                        case AtomicGetMsg.ACTION:
-                            AtomicGetMsg atomicGetMsg = gson.fromJson(msg, AtomicGetMsg.class);
-                            this.cdd.atomicGetIncrement(atomicGetMsg.getKeys(), atomicInc -> {
-                                AtomicIntAnswerMsg answer = new AtomicIntAnswerMsg(atomicGetMsg.getId(), atomicInc);
-                                client.send(gson.toJson(answer));
-                            });
-                            break;
+                                    case AtomicGetMsg.ACTION:
+                                        final AtomicGetMsg atomicGetMsg = gson.fromJson(msg, AtomicGetMsg.class);
+                                        cdd.atomicGetIncrement(atomicGetMsg.getKeys(), new KCallback<Short>() {
+                                            @Override
+                                            public void on(Short atomicInc) {
+                                                AtomicIntAnswerMsg answer = new AtomicIntAnswerMsg(atomicGetMsg.getId(), atomicInc);
+                                                client.send(gson.toJson(answer));
+                                            }
+                                        });
+                                        break;
+                                }
+                            } else {
+                                System.err.println("Received message is malformed");
+                            }
+                        } catch (IllegalStateException | JsonParseException e) {
+                            System.err.println("Received message is not a JsonObject");
+                        }
                     }
-                } else {
-                    System.err.println("Received message is malformed");
-                }
-            } catch (IllegalStateException | JsonParseException e) {
-                System.err.println("Received message is not a JsonObject");
+                });
             }
-        }));
+        });
     }
 
     @Override
