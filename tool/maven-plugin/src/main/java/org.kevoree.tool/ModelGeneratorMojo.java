@@ -129,7 +129,7 @@ public class ModelGeneratorMojo extends AbstractMojo {
 
                     DeployUnit du = createDeployUnit();
                     tdef.addDeployUnits(du);
-                    getLog().info("DeployUnit:      "+du.getName()+":"+du.getVersion());
+                    getLog().info("DeployUnit:      "+du.getName()+"/"+du.getVersion());
 
                     ns.addTypeDefinitions(tdef);
                 }
