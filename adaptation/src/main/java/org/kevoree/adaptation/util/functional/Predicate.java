@@ -1,8 +1,7 @@
-package org.kevoree.adaptation.util;
-
-import org.kevoree.Group;
+package org.kevoree.adaptation.util.functional;
 
 /**
+ * Takes an element of type T and return a boolean.
  * Created by mleduc on 16/12/15.
  */
 public interface Predicate<T> {

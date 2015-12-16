@@ -4,6 +4,7 @@ import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
 /**
+ * AddInstance Operation
  * Created by mleduc on 16/12/15.
  */
 public class AddInstance extends AdaptationOperation {

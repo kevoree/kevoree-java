@@ -4,6 +4,8 @@ import org.kevoree.modeling.KCallback;
 import rx.Subscriber;
 
 /**
+ * Send each element received from a callback one by one to an observer subscriber.
+ * <p>
  * Created by mleduc on 16/12/15.
  */
 public class ObservableDispatcher<T> implements KCallback<T[]> {
@@ -15,7 +17,7 @@ public class ObservableDispatcher<T> implements KCallback<T[]> {
 
     @Override
     public void on(T[] cb) {
-        for(T a: cb) {
+        for (T a : cb) {
             subscriber.onNext(a);
         }
 

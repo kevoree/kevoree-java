@@ -19,13 +19,15 @@ public class ChannelEngine {
 
         final Observable<SortedSet<AdaptationOperation>> dictionaryOperations = diffUtil.diffDictionary(before, after);
         final Observable<SortedSet<AdaptationOperation>> fragmentDictionaryOperations = diffUtil.diffFragmentDictionary(before, after);
-        final Observable<SortedSet<AdaptationOperation>> fragmentInputOperations =diffUtil.diffInput(before, after);
+        final Observable<SortedSet<AdaptationOperation>> fragmentInputOperations = diffUtil.diffInput(before, after);
+        final Observable<SortedSet<AdaptationOperation>> fragmentOutputOperations = diffUtil.diffOutput(before, after);
 
-        return Observable.merge(dictionaryOperations, fragmentDictionaryOperations).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
+
+        return Observable.merge(dictionaryOperations, fragmentDictionaryOperations, fragmentInputOperations).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
             @Override
-            public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> strings, SortedSet<AdaptationOperation> strings2) {
-                strings.addAll(strings2);
-                return strings;
+            public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> s1, SortedSet<AdaptationOperation> s2) {
+                s1.addAll(s2);
+                return s1;
             }
         });
     }

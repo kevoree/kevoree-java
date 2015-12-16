@@ -4,6 +4,7 @@ import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
 /**
+ * Update Instance Operation.
  * Created by mleduc on 16/12/15.
  */
 public class UpdateInstance extends AdaptationOperation {

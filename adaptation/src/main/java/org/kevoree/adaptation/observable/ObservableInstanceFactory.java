@@ -8,25 +8,26 @@ import rx.Observable;
 import rx.Subscriber;
 
 /**
+ * Transform callback based access to instance related elements into Observable components.
+ * <p>
  * Created by mleduc on 15/12/15.
  */
 public class ObservableInstanceFactory {
 
-
-    public Observable<TypeDefinition> getTypeDefObservable(final Instance n) {
+    public Observable<TypeDefinition> getTypeDefObservable(final Instance instance) {
         return Observable.create(new Observable.OnSubscribe<TypeDefinition>() {
             @Override
             public void call(Subscriber<? super TypeDefinition> subscriber) {
-                n.getTypeDefinition(new ObservableDispatcher<>(subscriber));
+                instance.getTypeDefinition(new ObservableDispatcher<>(subscriber));
             }
         });
     }
 
-    public Observable<Dictionary> getDictionaryObservable(final Instance n) {
+    public Observable<Dictionary> getDictionaryObservable(final Instance instance) {
         return Observable.create(new Observable.OnSubscribe<Dictionary>() {
             @Override
             public void call(Subscriber<? super Dictionary> subscriber) {
-                n.getDictionary(new ObservableDispatcher<>(subscriber));
+                instance.getDictionary(new ObservableDispatcher<>(subscriber));
             }
         });
 

@@ -4,35 +4,37 @@ import org.kevoree.Component;
 import org.kevoree.Group;
 import org.kevoree.Node;
 import org.kevoree.adaptation.observable.util.ObservableDispatcher;
-import org.kevoree.adaptation.util.Consumer;
+import org.kevoree.adaptation.util.functional.Consumer;
 import rx.Observable;
 import rx.Subscriber;
 
 
 /**
+ * Transform callback based access to node related elements into Observable components.
+ * <p>
  * Created by mleduc on 15/12/15.
  */
 public class ObservableNodeFactory {
-    public Observable<Component> getComponentObservable(final Node n) {
+    public Observable<Component> getComponentObservable(final Node node) {
         return Observable.create(new Observable.OnSubscribe<Component>() {
             @Override
             public void call(Subscriber<? super Component> subscriber) {
-                n.getComponents(new ObservableDispatcher<>(subscriber));
+                node.getComponents(new ObservableDispatcher<>(subscriber));
             }
         });
     }
 
-    public Observable<Node> getSubnodeObservable(final Node n) {
+    public Observable<Node> getSubnodeObservable(final Node node) {
         return Observable.create(new Observable.OnSubscribe<Node>() {
             @Override
             public void call(Subscriber<? super Node> subscriber) {
-                n.getSubNodes(new ObservableDispatcher<>(subscriber));
+                node.getSubNodes(new ObservableDispatcher<>(subscriber));
             }
         });
     }
 
 
-    public Observable<Group> getGroupObservable(final Node n) {
+    public Observable<Group> getGroupObservable(final Node node) {
         return Observable.create(new Observable.OnSubscribe<Group>() {
             @Override
             public void call(Subscriber<? super Group> subscriber) {
@@ -41,7 +43,7 @@ public class ObservableNodeFactory {
 
                     @Override
                     public void accept(ObservableDispatcher<Group> group) {
-                        n.getGroups(cb);
+                        node.getGroups(cb);
                     }
                 };
                 consumer.accept(cb);

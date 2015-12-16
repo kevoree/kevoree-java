@@ -4,6 +4,7 @@ import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
 /**
+ * Remove instance Operation.
  * Created by mleduc on 16/12/15.
  */
 public class RemoveInstance extends AdaptationOperation {
@@ -30,8 +31,8 @@ public class RemoveInstance extends AdaptationOperation {
     }
 
     @Override
-    public int compareTo(AdaptationOperation o) {
-        return super.compareTo(o);
+    public int compareTo(AdaptationOperation adaptationOperation) {
+        return super.compareTo(adaptationOperation);
     }
 
     @Override
