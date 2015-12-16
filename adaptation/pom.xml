@@ -18,7 +18,7 @@
         <dependency>
             <groupId>org.kevoree</groupId>
             <artifactId>model</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
