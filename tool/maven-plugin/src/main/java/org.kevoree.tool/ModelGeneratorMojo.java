@@ -11,12 +11,14 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.kevoree.*;
+import org.kevoree.annotations.*;
 import org.kevoree.annotations.Channel;
 import org.kevoree.annotations.Component;
 import org.kevoree.annotations.Group;
 import org.kevoree.annotations.Node;
 import org.kevoree.annotations.params.*;
 import org.kevoree.annotations.params.Param;
+import org.kevoree.api.OutputPort;
 import org.kevoree.meta.MetaNumberType;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
@@ -25,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileVisitResult;
@@ -32,10 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -91,6 +91,42 @@ public class ModelGeneratorMojo extends AbstractMojo {
                     DictionaryType dictionaryType = createDictionaryType(tdefClass);
                     tdef.addDictionary(dictionaryType);
 
+                    if (tdef instanceof ComponentType) {
+                        List<PortType> inputs = createInputPortTypes(tdefClass);
+                        StringBuilder inputLogs = new StringBuilder("Input ports:     ");
+                        if (!inputs.isEmpty()) {
+                            Iterator<PortType> it = inputs.iterator();
+                            while (it.hasNext()) {
+                                PortType portType = it.next();
+                                ((ComponentType) tdef).addInputTypes(portType);
+                                inputLogs.append(portType.getName());
+                                if (it.hasNext()) {
+                                    inputLogs.append(", ");
+                                }
+                            }
+                        } else {
+                            inputLogs.append("<none>");
+                        }
+                        getLog().info(inputLogs.toString());
+
+                        List<PortType> outputs = createOutputPortTypes(tdefClass);
+                        StringBuilder outputsLog = new StringBuilder("Output ports:    ");
+                        if (!outputs.isEmpty()) {
+                            Iterator<PortType> it = outputs.iterator();
+                            while (it.hasNext()) {
+                                PortType portType = it.next();
+                                outputsLog.append(portType.getName());
+                                ((ComponentType) tdef).addOutputTypes(portType);
+                                if (it.hasNext()) {
+                                    outputsLog.append(", ");
+                                }
+                            }
+                        } else {
+                            outputsLog.append("<none>");
+                        }
+                        getLog().info(outputsLog.toString());
+                    }
+
                     DeployUnit du = createDeployUnit();
                     tdef.addDeployUnits(du);
                     getLog().info("DeployUnit:      "+du.getName()+":"+du.getVersion());
@@ -107,6 +143,30 @@ public class ModelGeneratorMojo extends AbstractMojo {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private List<PortType> createOutputPortTypes(Class<?> clazz) {
+        List<PortType> portTypes = new ArrayList<>();
+        for (Field f : clazz.getDeclaredFields()) {
+            if (f.isAnnotationPresent(Output.class) && f.getType().equals(OutputPort.class)) {
+                PortType portType = kModel.createPortType(UNIVERSE, TIME);
+                portType.setName(f.getName());
+                portTypes.add(portType);
+            }
+        }
+        return portTypes;
+    }
+
+    private List<PortType> createInputPortTypes(Class<?> clazz) {
+        List<PortType> portTypes = new ArrayList<>();
+        for (Method m : clazz.getDeclaredMethods()) {
+            if (m.isAnnotationPresent(Input.class)) {
+                PortType portType = kModel.createPortType(UNIVERSE, TIME);
+                portType.setName(m.getName());
+                portTypes.add(portType);
+            }
+        }
+        return portTypes;
     }
 
     private DictionaryType createDictionaryType(Class<?> clazz) throws Exception {
