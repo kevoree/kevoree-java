@@ -1,6 +1,7 @@
 package org.kevoree.adaptation;
 
 import org.kevoree.*;
+import org.kevoree.Dictionary;
 import org.kevoree.adaptation.observable.ObservableDictionaryFactory;
 import org.kevoree.adaptation.observable.ObservableInstanceFactory;
 import org.kevoree.adaptation.observable.ObservableListParamFactory;
@@ -9,11 +10,14 @@ import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.AddInstance;
 import org.kevoree.adaptation.operation.RemoveInstance;
 import org.kevoree.adaptation.operation.UpdateInstance;
+import org.kevoree.adaptation.util.PredicateFactory;
 import rx.Observable;
+import rx.functions.Func1;
 import rx.functions.Func2;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,70 +38,114 @@ public class NodeEngine {
         final Observable<SortedSet<AdaptationOperation>> components = diffComponents(before, after);
         final Observable<SortedSet<AdaptationOperation>> dictionary = diffDictionary(before, after);
         final Observable<SortedSet<AdaptationOperation>> group = diffGroup(before, after);
-        return Observable.merge(nodes, components, dictionary, group).reduce((strings, strings2) -> {
-            strings.addAll(strings2);
-            return strings;
+        return Observable.merge(nodes, components, dictionary, group).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
+            @Override
+            public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> strings, SortedSet<AdaptationOperation> strings2) {
+                strings.addAll(strings2);
+                return strings;
+            }
         });
     }
 
     private Observable<SortedSet<AdaptationOperation>> diffGroup(Node before, Node after) {
         final Observable<List<Group>> beforeGroup = observableNodeFactory.getGroupObservable(before).toList();
         final Observable<List<Group>> afterGroup = observableNodeFactory.getGroupObservable(after).toList();
-        final Function<Group, AdaptationOperation> trFunction = x -> new RemoveInstance(x.uuid());
-        final Function<Group, AdaptationOperation> trFunction1 = y -> new AddInstance(y.uuid());
-        final PredicateFactory<Group> tPredicateFactory = a -> b -> a.getName().equals(b.getName()) && typeDefEquals(a, b);
+        final Function<Group, AdaptationOperation> trFunction = new Function<Group, AdaptationOperation>() {
+            @Override
+            public AdaptationOperation apply(Group x) {
+                return new RemoveInstance(x.uuid());
+            }
+        };
+        final Function<Group, AdaptationOperation> trFunction1 = new Function<Group, AdaptationOperation>() {
+            @Override
+            public AdaptationOperation apply(Group y) {
+                return new AddInstance(y.uuid());
+            }
+        };
+        final PredicateFactory<Group> tPredicateFactory = new PredicateFactory<Group>() {
+            @Override
+            public Predicate<? super Group> get(Group a) {
+                return new Predicate<Group>() {
+                    @Override
+                    public boolean test(Group b) {
+                        return a.getName().equals(b.getName()) && NodeEngine.this.typeDefEquals(a, b);
+                    }
+                };
+            }
+        };
         return getListObservable(beforeGroup, afterGroup, trFunction, trFunction1, tPredicateFactory);
     }
 
     private Observable<SortedSet<AdaptationOperation>> diffDictionary(Node before, Node after) {
-        final Func2<Param, Param, Integer> comparator = (param, param2) -> param.getName().compareTo(param2.getName());
-        final Observable<List<Param>> beforeParam = observableNodeFactory.getDictionaryObservable(before).flatMap(observableDictionaryFactory::getParamObservable).toSortedList(comparator);
-        final Observable<List<Param>> afterParam = observableNodeFactory.getDictionaryObservable(after).flatMap(observableDictionaryFactory::getParamObservable).toSortedList(comparator);
-        return Observable.zip(beforeParam, afterParam, (params, params2) -> {
-            final SortedSet<AdaptationOperation> res = new TreeSet<>();
-            for (int i = 0; i < Math.min(params.size(), params.size()); i++) {
-                final Param prev = params.get(i);
-                final Param next = params2.get(i);
-                if (!(prev == null || next == null)) {
-                    if (prev instanceof BooleanParam && next instanceof BooleanParam) {
-                        if (!Objects.equals(((BooleanParam) prev).getValue(), ((BooleanParam) next).getValue())) {
-                            res.add(new UpdateInstance(next.uuid()));
-                        }
-                    } else if (prev instanceof ListParam && next instanceof ListParam) {
-                        final Observable<List<Item>> beforeListItem = observableListParamFactory.getValuesObservable((ListParam) prev).toList();
-                        final Observable<List<Item>> afterListItem = observableListParamFactory.getValuesObservable((ListParam) next).toList();
-                        res.addAll(Observable.zip(beforeListItem, afterListItem, (items, items2) -> {
+        final Func2<Param, Param, Integer> comparator = new Func2<Param, Param, Integer>() {
+            @Override
+            public Integer call(Param param, Param param2) {
+                return param.getName().compareTo(param2.getName());
+            }
+        };
+        final Observable<List<Param>> beforeParam = observableNodeFactory.getDictionaryObservable(before).flatMap(new Func1<Dictionary, Observable<? extends Param>>() {
+            @Override
+            public Observable<? extends Param> call(Dictionary x) {
+                return observableDictionaryFactory.getParamObservable(x);
+            }
+        }).toSortedList(comparator);
+        final Observable<List<Param>> afterParam = observableNodeFactory.getDictionaryObservable(after).flatMap(new Func1<Dictionary, Observable<? extends Param>>() {
+            @Override
+            public Observable<? extends Param> call(Dictionary x) {
+                return observableDictionaryFactory.getParamObservable(x);
+            }
+        }).toSortedList(comparator);
+        return Observable.zip(beforeParam, afterParam, new Func2<List<Param>, List<Param>, SortedSet<AdaptationOperation>>() {
+            @Override
+            public SortedSet<AdaptationOperation> call(List<Param> params, List<Param> params2) {
+                final SortedSet<AdaptationOperation> res = new TreeSet<>();
+                for (int i = 0; i < Math.min(params.size(), params.size()); i++) {
+                    final Param prev = params.get(i);
+                    final Param next = params2.get(i);
+                    if (!(prev == null || next == null)) {
+                        if (prev instanceof BooleanParam && next instanceof BooleanParam) {
+                            if (!Objects.equals(((BooleanParam) prev).getValue(), ((BooleanParam) next).getValue())) {
+                                res.add(new UpdateInstance(next.uuid()));
+                            }
+                        } else if (prev instanceof ListParam && next instanceof ListParam) {
+                            final Observable<List<Item>> beforeListItem = observableListParamFactory.getValuesObservable((ListParam) prev).toList();
+                            final Observable<List<Item>> afterListItem = observableListParamFactory.getValuesObservable((ListParam) next).toList();
+                            res.addAll(Observable.zip(beforeListItem, afterListItem, new Func2<List<Item>, List<Item>, SortedSet<AdaptationOperation>>() {
+                                @Override
+                                public SortedSet<AdaptationOperation> call(List<Item> items, List<Item> items2) {
 
-                            boolean changed;
-                            if (items.size() != items2.size()) {
-                                changed = true;
-                            } else {
-                                changed = false;
-                                for (int i1 = 0; i1 < items.size(); i1++) {
-                                    if (!Objects.equals(items.get(i1).getValue(), items2.get(i1).getValue())) {
+                                    boolean changed;
+                                    if (items.size() != items2.size()) {
                                         changed = true;
-                                        break;
+                                    } else {
+                                        changed = false;
+                                        for (int i1 = 0; i1 < items.size(); i1++) {
+                                            if (!Objects.equals(items.get(i1).getValue(), items2.get(i1).getValue())) {
+                                                changed = true;
+                                                break;
+                                            }
+                                        }
                                     }
+                                    final SortedSet<AdaptationOperation> ret = new TreeSet<>();
+                                    if (changed) {
+                                        ret.add(new UpdateInstance(next.uuid()));
+                                    }
+                                    return ret;
                                 }
+                            }).toBlocking().first());
+                        } else if (prev instanceof NumberParam && next instanceof NumberParam) {
+                            if (!Objects.equals(((NumberParam) prev).getValue(), ((NumberParam) next).getValue())) {
+                                res.add(new UpdateInstance(next.uuid()));
                             }
-                            final SortedSet<AdaptationOperation> ret = new TreeSet<>();
-                            if (changed) {
-                                ret.add(new UpdateInstance(next.uuid()));
+                        } else if (prev instanceof StringParam && next instanceof StringParam) {
+                            if (!Objects.equals(((StringParam) prev).getValue(), ((StringParam) next).getValue())) {
+                                res.add(new UpdateInstance(next.uuid()));
                             }
-                            return ret;
-                        }).toBlocking().first());
-                    } else if (prev instanceof NumberParam && next instanceof NumberParam) {
-                        if (!Objects.equals(((NumberParam) prev).getValue(), ((NumberParam) next).getValue())) {
-                            res.add(new UpdateInstance(next.uuid()));
-                        }
-                    } else if (prev instanceof StringParam && next instanceof StringParam) {
-                        if (!Objects.equals(((StringParam) prev).getValue(), ((StringParam) next).getValue())) {
-                            res.add(new UpdateInstance(next.uuid()));
                         }
                     }
                 }
+                return res;
             }
-            return res;
         });
     }
 

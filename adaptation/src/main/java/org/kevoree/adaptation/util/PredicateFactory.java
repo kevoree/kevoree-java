@@ -1,4 +1,4 @@
-package org.kevoree.adaptation;
+package org.kevoree.adaptation.util;
 
 import java.util.function.Predicate;
 
