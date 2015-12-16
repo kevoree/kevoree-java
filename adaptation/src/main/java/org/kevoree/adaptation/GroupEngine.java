@@ -21,9 +21,9 @@ public class GroupEngine {
 
         return Observable.merge(dictionaryOperations, fragmentDictionaryOperations).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
             @Override
-            public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> strings, SortedSet<AdaptationOperation> strings2) {
-                strings.addAll(strings2);
-                return strings;
+            public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> set0, SortedSet<AdaptationOperation> set1) {
+                set0.addAll(set1);
+                return set0;
             }
         });
     }

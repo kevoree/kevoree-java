@@ -3,6 +3,7 @@ package org.kevoree.adaptation.util;
 import org.kevoree.*;
 import org.kevoree.Dictionary;
 import org.kevoree.adaptation.observable.*;
+import org.kevoree.adaptation.observable.ObservablePortFactory;
 import org.kevoree.adaptation.operation.AddInstance;
 import org.kevoree.adaptation.operation.RemoveInstance;
 import org.kevoree.adaptation.operation.UpdateInstance;
@@ -38,8 +39,50 @@ public class DiffUtil {
     private final ObservableListParamFactory observableListParamFactory = new ObservableListParamFactory();
     private final ObservableGroupFactory observableGroupFactory = new ObservableGroupFactory();
     private final ObservableChannelFactory observableChannelFactory = new ObservableChannelFactory();
+    private final ObservableComponentFactory observableComponentFactory = new ObservableComponentFactory();
     private final ObservableFragmentDictionaryFactory observableFragmentDictionaryFactory = new ObservableFragmentDictionaryFactory();
+    private final ObservablePortFactory observablePortFactory = new ObservablePortFactory();
 
+
+    public Observable<SortedSet<AdaptationOperation>> diffChannel(Node before, Node after) {
+        final Observable<List<Channel>> listObservable = getAllChannelFromNode(before).toList();
+        final Observable<List<Channel>> listObservable1 = getAllChannelFromNode(after).toList();
+        return getListObservable(listObservable, listObservable1, new Function<Channel, AdaptationOperation>() {
+            @Override
+            public AdaptationOperation apply(Channel x) {
+                return new RemoveInstance(x.uuid());
+            }
+        }, new Function<Channel, AdaptationOperation>() {
+            @Override
+            public AdaptationOperation apply(Channel x) {
+                return new AddInstance(x.uuid());
+            }
+        }, new PredicateFactory<Channel>() {
+            @Override
+            public Predicate<? super Channel> get(final Channel a) {
+                return new Predicate<Channel>() {
+                    @Override
+                    public boolean test(Channel b) {
+                        return Objects.equals(a.getName(), b.getName()) && typeDefEquals(a, b);
+                    }
+                };
+            }
+        });
+    }
+
+    private Observable<Channel> getAllChannelFromNode(Node before) {
+        return observableNodeFactory.getComponentObservable(before).flatMap(new Func1<Component, Observable<Port>>() {
+            @Override
+            public Observable<Port> call(Component component) {
+                return Observable.merge(observableComponentFactory.getInputPortFactory(component), observableComponentFactory.getOutputPortFactory(component));
+            }
+        }).flatMap(new Func1<Port, Observable<Channel>>() {
+            @Override
+            public Observable<Channel> call(Port port) {
+                return observablePortFactory.getChannelObservable(port);
+            }
+        });
+    }
 
     /**
      * This method target only the groups of the node.
