@@ -23,6 +23,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class NodeEngineTest {
     private NodeEngine nodeEngine = new NodeEngine();
 
+    /**
+     * Prev : Empty node
+     * Next : Empty node
+     * Result : no operation
+     *
+     * @throws Exception
+     */
     @Test
     public void testUnchanged() throws Exception {
         final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
@@ -38,6 +45,13 @@ public class NodeEngineTest {
         });
     }
 
+    /**
+     * Prev : Node with no subnode
+     * Next : A subnode is added
+     * Result : A add instance operation is asked for the new subnode.
+     *
+     * @throws Exception
+     */
     @Test
     public void testSubnodeAdded() throws Exception {
         final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
@@ -59,6 +73,10 @@ public class NodeEngineTest {
         });
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     @Test
     public void testSubnodeRemoved() throws Exception {
         final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());

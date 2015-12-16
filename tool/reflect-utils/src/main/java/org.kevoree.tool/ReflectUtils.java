@@ -6,8 +6,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class ReflectUtils {
 
@@ -116,16 +114,14 @@ public class ReflectUtils {
      * @param annotationType The expected annotation type.
      * @return The list of fields.
      */
-    public static List<Field> getAllFieldsWithAnnotation(Class<?> clazz, final Class<? extends Annotation> annotationType) {
-        return getAllFields(clazz)
-                .stream()
-                .filter(new Predicate<Field>() {
-                    @Override
-                    public boolean test(Field field) {
-                        return field.isAnnotationPresent(annotationType);
-                    }
-                })
-                .collect(Collectors.<Field>toList());
+    public static List<Field> getAllFieldsWithAnnotation(final Class<?> clazz, final Class<? extends Annotation> annotationType) {
+        final List<Field> ret = new ArrayList<>();
+        for(Field f: getAllFields(clazz)) {
+            if(f.isAnnotationPresent(annotationType)) {
+                ret.add(f);
+            }
+        }
+        return ret;
     }
 
     /**

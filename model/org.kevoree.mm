@@ -17,7 +17,7 @@ class org.kevoree.Instance extends org.kevoree.Element {
     att name: String with index
 
     rel typeDefinition: org.kevoree.TypeDefinition with maxBound 1
-    rel dictionary: org.kevoree.Dictionary
+    rel dictionary: org.kevoree.Dictionary with maxBound 1
 }
 
 class org.kevoree.Node extends org.kevoree.Instance {
@@ -35,7 +35,7 @@ class org.kevoree.Channel extends org.kevoree.Instance {
 
 class org.kevoree.Group extends org.kevoree.Instance {
     rel nodes: org.kevoree.Node with opposite "groups"
-    rel fragmentDictionary: org.kevoree.FragmentDictionary
+    rel fragmentDictionary: org.kevoree.FragmentDictionary with maxBound 1
 }
 
 class org.kevoree.Component extends org.kevoree.Instance {
