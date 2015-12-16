@@ -22,9 +22,9 @@ import org.kevoree.api.OutputPort;
 import org.kevoree.meta.MetaNumberType;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
+import org.kevoree.modeling.scheduler.impl.DirectScheduler;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Mojo(name = "gen-model", requiresDependencyResolution = ResolutionScope.RUNTIME)
@@ -45,7 +44,7 @@ public class ModelGeneratorMojo extends AbstractMojo {
     private static final int UNIVERSE = 0;
     private static final int TIME = 0;
 
-    private KevoreeModel kModel = new KevoreeModel(DataManagerBuilder.buildDefault());
+    private KevoreeModel kModel = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
 
     @Parameter(defaultValue = "${project.version}", readonly = true)
     private String deployUnitVersion;
@@ -69,80 +68,72 @@ public class ModelGeneratorMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().debug("Kevoree Model Generator - Reading project...");
 
-        try {
-            final CountDownLatch latch = new CountDownLatch(1);
-            kModel.connect(new KCallback() {
-                @Override
-                public void on(Object o) {
-                    latch.countDown();
-                }
-            });
-            latch.await(1000, TimeUnit.MILLISECONDS);
-            try {
-                Model model = kModel.createModel(UNIVERSE, TIME);
-                Namespace ns = createNamespace();
-                model.addNamespaces(ns);
-                getLog().info("Namespace:       "+ns.getName());
+        kModel.connect(new KCallback() {
+            @Override
+            public void on(Object o) {
+                try {
+                    Model model = kModel.createModel(UNIVERSE, TIME);
+                    Namespace ns = createNamespace();
+                    model.addNamespaces(ns);
+                    getLog().info("Namespace:       "+ns.getName());
 
-                for (Class<?> tdefClass : findTypeDefinitionClasses()) {
-                    TypeDefinition tdef = createTypeDefinition(tdefClass);
-                    getLog().info("TypeDefinition:  "+tdef.getName()+"/"+tdef.getVersion());
+                    for (Class<?> tdefClass : findTypeDefinitionClasses()) {
+                        TypeDefinition tdef = createTypeDefinition(tdefClass);
+                        getLog().info("TypeDefinition:  "+tdef.getName()+"/"+tdef.getVersion());
 
-                    DictionaryType dictionaryType = createDictionaryType(tdefClass);
-                    tdef.addDictionary(dictionaryType);
+                        DictionaryType dictionaryType = createDictionaryType(tdefClass);
+                        tdef.addDictionary(dictionaryType);
 
-                    if (tdef instanceof ComponentType) {
-                        List<PortType> inputs = createInputPortTypes(tdefClass);
-                        StringBuilder inputLogs = new StringBuilder("Input ports:     ");
-                        if (!inputs.isEmpty()) {
-                            Iterator<PortType> it = inputs.iterator();
-                            while (it.hasNext()) {
-                                PortType portType = it.next();
-                                ((ComponentType) tdef).addInputTypes(portType);
-                                inputLogs.append(portType.getName());
-                                if (it.hasNext()) {
-                                    inputLogs.append(", ");
+                        if (tdef instanceof ComponentType) {
+                            List<PortType> inputs = createInputPortTypes(tdefClass);
+                            StringBuilder inputLogs = new StringBuilder("Input ports:     ");
+                            if (!inputs.isEmpty()) {
+                                Iterator<PortType> it = inputs.iterator();
+                                while (it.hasNext()) {
+                                    PortType portType = it.next();
+                                    ((ComponentType) tdef).addInputTypes(portType);
+                                    inputLogs.append(portType.getName());
+                                    if (it.hasNext()) {
+                                        inputLogs.append(", ");
+                                    }
                                 }
+                            } else {
+                                inputLogs.append("<none>");
                             }
-                        } else {
-                            inputLogs.append("<none>");
-                        }
-                        getLog().info(inputLogs.toString());
+                            getLog().info(inputLogs.toString());
 
-                        List<PortType> outputs = createOutputPortTypes(tdefClass);
-                        StringBuilder outputsLog = new StringBuilder("Output ports:    ");
-                        if (!outputs.isEmpty()) {
-                            Iterator<PortType> it = outputs.iterator();
-                            while (it.hasNext()) {
-                                PortType portType = it.next();
-                                outputsLog.append(portType.getName());
-                                ((ComponentType) tdef).addOutputTypes(portType);
-                                if (it.hasNext()) {
-                                    outputsLog.append(", ");
+                            List<PortType> outputs = createOutputPortTypes(tdefClass);
+                            StringBuilder outputsLog = new StringBuilder("Output ports:    ");
+                            if (!outputs.isEmpty()) {
+                                Iterator<PortType> it = outputs.iterator();
+                                while (it.hasNext()) {
+                                    PortType portType = it.next();
+                                    outputsLog.append(portType.getName());
+                                    ((ComponentType) tdef).addOutputTypes(portType);
+                                    if (it.hasNext()) {
+                                        outputsLog.append(", ");
+                                    }
                                 }
+                            } else {
+                                outputsLog.append("<none>");
                             }
-                        } else {
-                            outputsLog.append("<none>");
+                            getLog().info(outputsLog.toString());
                         }
-                        getLog().info(outputsLog.toString());
+
+                        DeployUnit du = createDeployUnit();
+                        tdef.addDeployUnits(du);
+                        getLog().info("DeployUnit:      "+du.getName()+"/"+du.getVersion());
+
+                        ns.addTypeDefinitions(tdef);
                     }
 
-                    DeployUnit du = createDeployUnit();
-                    tdef.addDeployUnits(du);
-                    getLog().info("DeployUnit:      "+du.getName()+"/"+du.getVersion());
-
-                    ns.addTypeDefinitions(tdef);
+                    saveModel(model);
+                    getLog().debug("Kevoree Model Generator - Done");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                saveModel(model);
-                getLog().debug("Kevoree Model Generator - Done");
-                latch.countDown();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     private List<PortType> createOutputPortTypes(Class<?> clazz) {
@@ -358,20 +349,17 @@ public class ModelGeneratorMojo extends AbstractMojo {
             modelFile.delete();
         }
         modelFile.createNewFile();
-        final CountDownLatch latch = new CountDownLatch(1);
         kModel.universe(UNIVERSE).time(TIME).json().save(model, new KCallback<String>() {
             @Override
             public void on(String modelStr) {
                 try {
                     FileUtils.writeStringToFile(modelFile, modelStr);
                     getLog().info("Kevoree model generated: "+modelFile.toString());
-                    latch.countDown();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
-        latch.await(1000, TimeUnit.MILLISECONDS);
     }
 
     private Namespace createNamespace() throws MojoExecutionException {
