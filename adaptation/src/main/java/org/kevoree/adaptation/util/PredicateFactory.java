@@ -1,7 +1,5 @@
 package org.kevoree.adaptation.util;
 
-import java.util.function.Predicate;
-
 /**
  * Created by mleduc on 14/12/15.
  */
