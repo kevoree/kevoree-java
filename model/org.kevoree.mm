@@ -171,7 +171,7 @@ class org.kevoree.BooleanParamType extends org.kevoree.ParamType {
 }
 
 class org.kevoree.ChoiceParamType extends org.kevoree.ParamType {
-    att defaultIndex: Int
+    att default: String
 
     rel choices: org.kevoree.Item
 }
