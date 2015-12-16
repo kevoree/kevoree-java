@@ -28,6 +28,7 @@ public class DiffUtil {
     private final ObservableInstanceFactory observableInstanceFactory = new ObservableInstanceFactory();
     private final ObservableListParamFactory observableListParamFactory = new ObservableListParamFactory();
     private final ObservableGroupFactory observableGroupFactory = new ObservableGroupFactory();
+    private final ObservableChannelFactory observableChannelFactory = new ObservableChannelFactory();
     private final ObservableFragmentDictionaryFactory observableFragmentDictionaryFactory = new ObservableFragmentDictionaryFactory();
 
 
@@ -210,6 +211,23 @@ public class DiffUtil {
         return diffParams(beforeParams, afterParams);
     }
 
+    public Observable<SortedSet<AdaptationOperation>> diffFragmentDictionary(Channel before, Channel after) {
+        final Observable<Param> beforeParams = observableChannelFactory.getFragmentDictionaryObservable(before).flatMap(new Func1<FragmentDictionary, Observable<Param>>() {
+            @Override
+            public Observable<Param> call(FragmentDictionary fragmentDictionaries) {
+                return observableFragmentDictionaryFactory.getParamObservable(fragmentDictionaries);
+            }
+        });
+        final Observable<Param> afterParams = observableChannelFactory.getFragmentDictionaryObservable(after).flatMap(new Func1<FragmentDictionary, Observable<Param>>() {
+            @Override
+            public Observable<Param> call(FragmentDictionary fragmentDictionaries) {
+                return observableFragmentDictionaryFactory.getParamObservable(fragmentDictionaries);
+            }
+        });
+
+        return diffParams(beforeParams, afterParams);
+    }
+
     private Boolean typeDefEquals(Instance prevNode, Instance node) {
         final Observable<TypeDefinition> typeDefObservable1 = observableInstanceFactory.getTypeDefObservable(prevNode);
         final Observable<TypeDefinition> typeDefObservable = observableInstanceFactory.getTypeDefObservable(node);
@@ -258,5 +276,10 @@ public class DiffUtil {
             }
         }
         return ret;
+    }
+
+
+    public Observable<SortedSet<AdaptationOperation>> diffInput(Channel channel, Channel after) {
+        return null;
     }
 }
