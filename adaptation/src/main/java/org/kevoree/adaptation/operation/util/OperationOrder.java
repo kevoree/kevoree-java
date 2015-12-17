@@ -8,6 +8,7 @@ public enum OperationOrder {
     ADD_DEPLOY_UNIT,
     ADD_INSTANCE,
     STOP_INSTANCE,
+    UPDATE_PARAM,
     UPDATE_INSTANCE,
     REMOVE_INSTANCE,
     START_INSTANCE,

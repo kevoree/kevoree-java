@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.kevoree.*;
 import org.kevoree.adaptation.operation.UpdateInstance;
+import org.kevoree.adaptation.operation.UpdateParam;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.AddInstance;
 import org.kevoree.adaptation.operation.RemoveInstance;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Created by mleduc on 14/12/15.
  */
 public class NodeEngineTest {
-    private NodeEngine nodeEngine = new NodeEngine();
+    private final NodeEngine nodeEngine = new NodeEngine();
 
     /**
      * Prev : Empty node
@@ -74,7 +75,6 @@ public class NodeEngineTest {
     }
 
     /**
-     *
      * @throws Exception
      */
     @Test
@@ -286,9 +286,10 @@ public class NodeEngineTest {
                 node2.addDictionary(dicB);
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
                 Assert.assertNotNull(cb2);
-                Assert.assertEquals(1, cb2.size());
+                Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateInstance(booleanParamB.uuid()));
+                expected.add(new UpdateParam(booleanParamB.uuid()));
+                expected.add(new UpdateInstance(node2.uuid()));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -318,9 +319,10 @@ public class NodeEngineTest {
                 node2.addDictionary(dicB);
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
                 Assert.assertNotNull(cb2);
-                Assert.assertEquals(1, cb2.size());
+                Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateInstance(listParamB.uuid()));
+                expected.add(new UpdateParam(listParamB.uuid()));
+                expected.add(new UpdateInstance(node2.uuid()));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -353,9 +355,9 @@ public class NodeEngineTest {
                 node2.addDictionary(dicB);
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
                 Assert.assertNotNull(cb2);
-                Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateInstance(listParamB.uuid()));
+                expected.add(new UpdateParam(listParamB.uuid()));
+                expected.add(new UpdateInstance(node2.uuid()));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -425,6 +427,195 @@ public class NodeEngineTest {
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new RemoveInstance(group0.uuid()));
                 expected.add(new AddInstance(group1.uuid()));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    /**
+     * We link an existing component to a chan. The channel is instanciated.
+     */
+    @Test
+    public void testAddChannel() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+                final Component component = tm.createComponent(0, 0);
+                component.setName("comp0");
+                node0.addComponents(component);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                component1.setName("comp0");
+                final OutputPort outputPort = tm.createOutputPort(0, 0);
+                final Channel channel = tm.createChannel(0, 0);
+                channel.setName("chan0");
+                outputPort.addChannels(channel);
+                component1.addOutputs(outputPort);
+                node1.addComponents(component1);
+
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new AddInstance(channel.uuid()));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    /**
+     * We add a new component and link it to an existing channel.
+     * Only the component is instanciated.
+     */
+    @Test
+    public void testAddChannelAlreadyThere() {
+
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+
+
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+                final Node node0 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final OutputPort outputPort = tm.createOutputPort(0, 0);
+                final Channel channel = tm.createChannel(0, 0);
+                component1.setName("comp0");
+                channel.setName("chan0");
+                outputPort.addChannels(channel);
+                component1.addOutputs(outputPort);
+                node0.addComponents(component1);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component2 = tm.createComponent(0, 0);
+                final Component component3 = tm.createComponent(0, 0);
+                final OutputPort outputPort2 = tm.createOutputPort(0, 0);
+                final Channel channel2 = tm.createChannel(0, 0);
+                component2.setName("comp0");
+                component3.setName("comp1");
+                channel2.setName("chan0");
+                outputPort2.addChannels(channel2);
+                component2.addOutputs(outputPort2);
+                component3.addOutputs(outputPort2);
+                node1.addComponents(component2);
+                node1.addComponents(component3);
+
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new AddInstance(component3.uuid()));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    /**
+     * We remove the relation between a component and a channel.
+     * The channel is still connected to the node by another component so no adaptation is needed.
+     */
+    @Test
+    public void testUnlinkComponentToChannelButStillLinkOnotherWay() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+
+
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+                final Component component2 = tm.createComponent(0, 0);
+                final Component component3 = tm.createComponent(0, 0);
+                final OutputPort outputPort2 = tm.createOutputPort(0, 0);
+                final Channel channel2 = tm.createChannel(0, 0);
+                component2.setName("comp0");
+                component3.setName("comp1");
+                channel2.setName("chan0");
+                outputPort2.addChannels(channel2);
+                component2.addOutputs(outputPort2);
+                component3.addOutputs(outputPort2);
+                node0.addComponents(component2);
+                node0.addComponents(component3);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component20 = tm.createComponent(0, 0);
+                final Component component30 = tm.createComponent(0, 0);
+                final OutputPort outputPort20 = tm.createOutputPort(0, 0);
+                final Channel channel20 = tm.createChannel(0, 0);
+                component20.setName("comp0");
+                component30.setName("comp1");
+                channel20.setName("chan0");
+                outputPort20.addChannels(channel20);
+                node1.addComponents(component20);
+                node1.addComponents(component30);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new RemoveInstance(channel2.uuid()));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    /**
+     * We remove the relation between a component and a channel.
+     * The channel is still connected to the node by another component so no adaptation is needed.
+     */
+    @Test
+    public void testUnlinkComponentToChannelAndNoLinkRemain() {
+        /**
+         * Scénarios :
+         * - ajouter un chan rattaché à aucun composants du noeud
+         * - ajouter un chan sur un deuxième composant alors qu'il est déjà attaché à un autre composant du meme noeud
+         * - supprimer un chan sur un input alors qu'il est déjà rattaché à un autre input du meme noeud
+         * - supprimer un chan sur un input d'un composant ce qui fait qu'il est maintenant complètement détaché du noeud.
+         *
+         */
+
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+
+
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+
+                final Node node0 = tm.createNode(0, 0);
+                final Component component2 = tm.createComponent(0, 0);
+                final Component component3 = tm.createComponent(0, 0);
+                final OutputPort outputPort2 = tm.createOutputPort(0, 0);
+                final Channel channel2 = tm.createChannel(0, 0);
+                component2.setName("comp0");
+                component3.setName("comp1");
+                channel2.setName("chan0");
+                outputPort2.addChannels(channel2);
+                component2.addOutputs(outputPort2);
+                component3.addOutputs(outputPort2);
+                node0.addComponents(component2);
+                node0.addComponents(component3);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component20 = tm.createComponent(0, 0);
+                final Component component30 = tm.createComponent(0, 0);
+                final OutputPort outputPort20 = tm.createOutputPort(0, 0);
+                final Channel channel20 = tm.createChannel(0, 0);
+                component20.setName("comp0");
+                component30.setName("comp1");
+                channel20.setName("chan0");
+                outputPort20.addChannels(channel20);
+                component20.addOutputs(outputPort20);
+                node1.addComponents(component20);
+                node1.addComponents(component30);
+
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });

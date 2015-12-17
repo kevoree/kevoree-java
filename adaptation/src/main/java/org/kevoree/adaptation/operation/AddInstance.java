@@ -8,10 +8,10 @@ import org.kevoree.adaptation.operation.util.OperationOrder;
  * Created by mleduc on 16/12/15.
  */
 public class AddInstance extends AdaptationOperation {
-    public final long uuid;
+
 
     public AddInstance(long uuid) {
-        this.uuid = uuid;
+        super(uuid);
     }
 
     @Override

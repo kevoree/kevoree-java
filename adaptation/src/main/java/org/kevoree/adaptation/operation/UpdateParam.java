@@ -7,19 +7,19 @@ import org.kevoree.adaptation.operation.util.OperationOrder;
  * Update Instance Operation.
  * Created by mleduc on 16/12/15.
  */
-public class UpdateInstance extends AdaptationOperation {
-    public UpdateInstance(long uuid) {
+public class UpdateParam extends AdaptationOperation {
+    public UpdateParam(long uuid) {
         super(uuid);
     }
 
     @Override
     public OperationOrder getOperationOrder() {
-        return OperationOrder.UPDATE_INSTANCE;
+        return OperationOrder.UPDATE_PARAM;
     }
 
     @Override
     public String toString() {
-        return "UpdateInstance{" +
+        return "UpdateParam{" +
                 "uuid=" + uuid +
                 '}';
     }
@@ -29,7 +29,7 @@ public class UpdateInstance extends AdaptationOperation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        UpdateInstance that = (UpdateInstance) o;
+        UpdateParam that = (UpdateParam) o;
 
         return uuid == that.uuid;
 

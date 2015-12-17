@@ -26,4 +26,13 @@ public class ObservableComponentFactory {
             }
         });
     }
+
+    public Observable<Node> getHostObservable(final Component component) {
+        return Observable.create(new Observable.OnSubscribe<Node>() {
+            @Override
+            public void call(Subscriber<? super Node> subscriber) {
+                component.getHost(new ObservableDispatcher<>(subscriber));
+            }
+        });
+    }
 }

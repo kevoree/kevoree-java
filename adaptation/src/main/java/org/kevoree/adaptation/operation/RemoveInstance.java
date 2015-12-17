@@ -8,10 +8,9 @@ import org.kevoree.adaptation.operation.util.OperationOrder;
  * Created by mleduc on 16/12/15.
  */
 public class RemoveInstance extends AdaptationOperation {
-    public final long uuid;
 
     public RemoveInstance(long uuid) {
-        this.uuid = uuid;
+        super(uuid);
     }
 
     @Override
