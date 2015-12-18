@@ -4,11 +4,8 @@ import org.KevoreeModel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.kevoree.*;
-import org.kevoree.adaptation.operation.UpdateInstance;
-import org.kevoree.adaptation.operation.UpdateParam;
+import org.kevoree.adaptation.operation.*;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
-import org.kevoree.adaptation.operation.AddInstance;
-import org.kevoree.adaptation.operation.RemoveInstance;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 import org.kevoree.modeling.scheduler.impl.DirectScheduler;
@@ -46,6 +43,80 @@ public class NodeEngineTest {
         });
     }
 
+    @Test
+    public void testStart() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0,0);
+                node0.setStarted(false);
+                final Node node1 = tm.createNode(0,0);
+                node1.setStarted(true);
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StartInstance(node1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testNotStartWhenInitialStatusNotDefined() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0,0);
+                final Node node1 = tm.createNode(0,0);
+                node1.setStarted(false);
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+
+    @Test
+    public void testStartWhenInitialStatusNotDefined() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0,0);
+                final Node node1 = tm.createNode(0,0);
+                node1.setStarted(true);
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StartInstance(node1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testStop() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0,0);
+                node0.setStarted(true);
+                final Node node1 = tm.createNode(0,0);
+                node1.setStarted(false);
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StopInstance(node1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
     /**
      * Prev : Node with no subnode
      * Next : A subnode is added
@@ -68,7 +139,7 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(node.uuid()));
+                expected.add(new AddInstance(node));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -93,7 +164,7 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(node.uuid()));
+                expected.add(new RemoveInstance(node));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -127,8 +198,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(subNode1.uuid()));
-                expected.add(new AddInstance(subNode2.uuid()));
+                expected.add(new RemoveInstance(subNode1));
+                expected.add(new AddInstance(subNode2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -153,8 +224,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(nodeA.uuid()));
-                expected.add(new AddInstance(nodeB.uuid()));
+                expected.add(new RemoveInstance(nodeA));
+                expected.add(new AddInstance(nodeB));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -176,7 +247,7 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(component.uuid()));
+                expected.add(new AddInstance(component));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -209,8 +280,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(componentB.uuid()));
-                expected.add(new RemoveInstance(componentA.uuid()));
+                expected.add(new AddInstance(componentB));
+                expected.add(new RemoveInstance(componentA));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -232,7 +303,7 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(component.uuid()));
+                expected.add(new RemoveInstance(component));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -257,8 +328,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(componentA.uuid()));
-                expected.add(new AddInstance(componentB.uuid()));
+                expected.add(new RemoveInstance(componentA));
+                expected.add(new AddInstance(componentB));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -288,8 +359,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(booleanParamB.uuid()));
-                expected.add(new UpdateInstance(node2.uuid()));
+                expected.add(new UpdateParam(booleanParamB));
+                expected.add(new UpdateInstance(node2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -321,8 +392,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(listParamB.uuid()));
-                expected.add(new UpdateInstance(node2.uuid()));
+                expected.add(new UpdateParam(listParamB));
+                expected.add(new UpdateInstance(node2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -356,8 +427,8 @@ public class NodeEngineTest {
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(listParamB.uuid()));
-                expected.add(new UpdateInstance(node2.uuid()));
+                expected.add(new UpdateParam(listParamB));
+                expected.add(new UpdateInstance(node2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -425,8 +496,8 @@ public class NodeEngineTest {
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(group0.uuid()));
-                expected.add(new AddInstance(group1.uuid()));
+                expected.add(new RemoveInstance(group0));
+                expected.add(new AddInstance(group1));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -461,7 +532,7 @@ public class NodeEngineTest {
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(channel.uuid()));
+                expected.add(new AddInstance(channel));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -509,7 +580,7 @@ public class NodeEngineTest {
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(component3.uuid()));
+                expected.add(new AddInstance(component3));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -556,7 +627,7 @@ public class NodeEngineTest {
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(channel2.uuid()));
+                expected.add(new RemoveInstance(channel2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });

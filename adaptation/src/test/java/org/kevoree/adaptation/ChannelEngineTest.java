@@ -4,10 +4,7 @@ import org.KevoreeModel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.kevoree.*;
-import org.kevoree.adaptation.operation.AddInstance;
-import org.kevoree.adaptation.operation.RemoveInstance;
-import org.kevoree.adaptation.operation.UpdateInstance;
-import org.kevoree.adaptation.operation.UpdateParam;
+import org.kevoree.adaptation.operation.*;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
@@ -33,10 +30,50 @@ public class ChannelEngineTest {
             @Override
             public void on(Object cb) {
                 final Channel chan0 = tm.createChannel(0, 0);
+                chan0.setStarted(false);
                 final Channel chan1 = tm.createChannel(0, 0);
+                chan1.setStarted(false);
                 final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 Assert.assertEquals(0, stringStream.size());
+            }
+        });
+    }
+
+    @Test
+    public void testStart() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Channel chan0 = tm.createChannel(0, 0);
+                chan0.setStarted(false);
+                final Channel chan1 = tm.createChannel(0, 0);
+                chan1.setStarted(true);
+                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StartInstance(chan1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testStop() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Channel chan0 = tm.createChannel(0, 0);
+                chan0.setStarted(true);
+                final Channel chan1 = tm.createChannel(0, 0);
+                chan1.setStarted(false);
+                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StopInstance(chan1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
             }
         });
     }
@@ -115,9 +152,9 @@ public class ChannelEngineTest {
                 final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(param11.uuid()));
-                expected.add(new UpdateParam(param12.uuid()));
-                expected.add(new UpdateInstance(chan1.uuid()));
+                expected.add(new UpdateParam(param11));
+                expected.add(new UpdateParam(param12));
+                expected.add(new UpdateInstance(chan1));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });
@@ -182,10 +219,10 @@ public class ChannelEngineTest {
                 final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(inputPortPrinter00.uuid()));
-                expected.add(new AddInstance(inputPortPrinter10.uuid()));
-                expected.add(new AddInstance(outputPortTicker00.uuid()));
-                expected.add(new AddInstance(outputPortTicker10.uuid()));
+                expected.add(new AddBinding(inputPortPrinter00));
+                expected.add(new AddBinding(inputPortPrinter10));
+                expected.add(new AddBinding(outputPortTicker00));
+                expected.add(new AddBinding(outputPortTicker10));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });
@@ -266,8 +303,8 @@ public class ChannelEngineTest {
                 final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new RemoveInstance(inputPortPrinter00.uuid()));
-                expected.add(new RemoveInstance(outputPortTicker00.uuid()));
+                expected.add(new RemoveBinding(inputPortPrinter00));
+                expected.add(new RemoveBinding(outputPortTicker00));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });
@@ -298,8 +335,8 @@ public class ChannelEngineTest {
                 final SortedSet<AdaptationOperation> res = channelEngine.diff(channel0, channel1).toBlocking().first();
                 Assert.assertNotNull(res);
                 final Set<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(stringParam1.uuid()));
-                expected.add(new UpdateInstance(channel1.uuid()));
+                expected.add(new UpdateParam(stringParam1));
+                expected.add(new UpdateInstance(channel1));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });

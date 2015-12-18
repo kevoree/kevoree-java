@@ -19,7 +19,9 @@ public class ComponentEngine {
     public Observable<SortedSet<AdaptationOperation>> diff(final Component before, final Component after) {
 
 
-        return diffUtil.diffDictionary(before, after).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
+        final Observable<SortedSet<AdaptationOperation>> dictionary = diffUtil.diffDictionary(before, after);
+        final Observable<SortedSet<AdaptationOperation>> status = diffUtil.diffInstanceStatus(before, after);
+        return Observable.merge(dictionary, status).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
             @Override
             public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> set0, SortedSet<AdaptationOperation> set1) {
                 set0.addAll(set1);

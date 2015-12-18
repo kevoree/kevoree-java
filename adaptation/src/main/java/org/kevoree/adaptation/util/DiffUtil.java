@@ -4,10 +4,7 @@ import org.kevoree.*;
 import org.kevoree.Dictionary;
 import org.kevoree.adaptation.observable.*;
 import org.kevoree.adaptation.observable.ObservablePortFactory;
-import org.kevoree.adaptation.operation.AddInstance;
-import org.kevoree.adaptation.operation.RemoveInstance;
-import org.kevoree.adaptation.operation.UpdateInstance;
-import org.kevoree.adaptation.operation.UpdateParam;
+import org.kevoree.adaptation.operation.*;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.util.comparators.ParamComparator;
 import org.kevoree.adaptation.util.comparators.TypeDefEquality;
@@ -94,15 +91,15 @@ public class DiffUtil {
                 return observableDictionaryFactory.getParamObservable(x);
             }
         });
-        return diffParams(paramObservable, paramObservable1, after.uuid());
+        return diffParams(paramObservable, paramObservable1, after);
     }
 
     /**
      * @param unsortedBeforeParam Previous state of the param.
      * @param unsortedAfterParam  Current state of the param.
-     * @param afterParamOwnerId   @return The serie of operations needed to pass from before to after.
+     * @param afterParamOwner   @return The serie of operations needed to pass from before to after.
      */
-    private Observable<SortedSet<AdaptationOperation>> diffParams(final Observable<Param> unsortedBeforeParam, final Observable<Param> unsortedAfterParam, final long afterParamOwnerId) {
+    private Observable<SortedSet<AdaptationOperation>> diffParams(final Observable<Param> unsortedBeforeParam, final Observable<Param> unsortedAfterParam, final Instance afterParamOwner) {
         final Observable<List<Param>> beforeParam = unsortedBeforeParam.toSortedList(new ParamComparator());
         final Observable<List<Param>> afterParam = unsortedAfterParam.toSortedList(new ParamComparator());
         return Observable.zip(beforeParam, afterParam, new Func2<List<Param>, List<Param>, SortedSet<AdaptationOperation>>() {
@@ -110,14 +107,14 @@ public class DiffUtil {
             public SortedSet<AdaptationOperation> call(List<Param> params, List<Param> params2) {
                 final SortedSet<AdaptationOperation> res = new TreeSet<>();
                 for (int i = 0; i < Math.min(params.size(), params2.size()); i++) {
-                    compareParams(res, params.get(i), params2.get(i), afterParamOwnerId);
+                    compareParams(res, params.get(i), params2.get(i), afterParamOwner);
                 }
                 return res;
             }
         });
     }
 
-    private void compareParams(final SortedSet<AdaptationOperation> res, final Param prev, final Param next, final long afterParamOwnerId) {
+    private void compareParams(final SortedSet<AdaptationOperation> res, final Param prev, final Param next, final Instance afterParamOwnerId) {
         if (!(prev == null || next == null)) {
             if (prev instanceof BooleanParam && next instanceof BooleanParam) {
                 compareParamsBoolean(res, (BooleanParam) prev, next, afterParamOwnerId);
@@ -131,14 +128,14 @@ public class DiffUtil {
         }
     }
 
-    private void compareParams(SortedSet<AdaptationOperation> res, Param next, long afterParamOwnerId, String value, String value2) {
+    private void compareParams(SortedSet<AdaptationOperation> res, Param next, Instance afterParam, String value, String value2) {
         if (!Objects.equals(value, value2)) {
-            res.add(new UpdateParam(next.uuid()));
-            res.add(new UpdateInstance(afterParamOwnerId));
+            res.add(new UpdateParam(next));
+            res.add(new UpdateInstance(afterParam));
         }
     }
 
-    private void compareParamsList(SortedSet<AdaptationOperation> res, ListParam prev, final Param next, final long afterParamOwnerId) {
+    private void compareParamsList(SortedSet<AdaptationOperation> res, ListParam prev, final Param next, final Instance afterParamOwner) {
         final Observable<List<Item>> beforeListItem = observableListParamFactory.getValuesObservable(prev).toList();
         final Observable<List<Item>> afterListItem = observableListParamFactory.getValuesObservable((ListParam) next).toList();
         res.addAll(Observable.zip(beforeListItem, afterListItem, new Func2<List<Item>, List<Item>, SortedSet<AdaptationOperation>>() {
@@ -159,17 +156,17 @@ public class DiffUtil {
                 }
                 final SortedSet<AdaptationOperation> ret = new TreeSet<>();
                 if (changed) {
-                    ret.add(new UpdateParam(next.uuid()));
-                    ret.add(new UpdateInstance(afterParamOwnerId));
+                    ret.add(new UpdateParam(next));
+                    ret.add(new UpdateInstance(afterParamOwner));
                 }
                 return ret;
             }
         }).toBlocking().first());
     }
 
-    private void compareParamsBoolean(SortedSet<AdaptationOperation> res, BooleanParam prev, Param next, long afterParamOwnerId) {
+    private void compareParamsBoolean(SortedSet<AdaptationOperation> res, BooleanParam prev, Param next, Instance afterParamOwnerId) {
         if (!Objects.equals(prev.getValue(), ((BooleanParam) next).getValue())) {
-            res.add(new UpdateParam(next.uuid()));
+            res.add(new UpdateParam(next));
             res.add(new UpdateInstance(afterParamOwnerId));
         }
     }
@@ -184,7 +181,7 @@ public class DiffUtil {
     public Observable<SortedSet<AdaptationOperation>> diffOutput(Channel before, Channel after) {
         final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getOutputObservable(before).map(new Upcast<Port>()).toList();
         final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getOutputObservable(after).map(new Upcast<Port>()).toList();
-        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveInstanceOperation<Port>(), new AddInstanceOperation<Port>(), new PortComparator(observablePortFactory, observableComponentFactory));
+        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveBindingOperation(), new AddBindingOperation(), new PortComparator(observablePortFactory, observableComponentFactory));
     }
 
     /**
@@ -197,7 +194,7 @@ public class DiffUtil {
     public Observable<SortedSet<AdaptationOperation>> diffInput(Channel before, Channel after) {
         final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getInputObservable(before).map(new Upcast<Port>()).toList();
         final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getInputObservable(after).map(new Upcast<Port>()).toList();
-        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveInstanceOperation<Port>(), new AddInstanceOperation<Port>(), new PortComparator(observablePortFactory, observableComponentFactory));
+        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveBindingOperation(), new AddBindingOperation(), new PortComparator(observablePortFactory, observableComponentFactory));
     }
 
     /**
@@ -213,13 +210,13 @@ public class DiffUtil {
         final Function<Component, AdaptationOperation> componentStringFunction = new Function<Component, AdaptationOperation>() {
             @Override
             public AdaptationOperation apply(Component n) {
-                return new RemoveInstance(n.uuid());
+                return new RemoveInstance(n);
             }
         };
         final Function<Component, AdaptationOperation> componentStringFunction1 = new Function<Component, AdaptationOperation>() {
             @Override
             public AdaptationOperation apply(Component n) {
-                return new AddInstance(n.uuid());
+                return new AddInstance(n);
             }
         };
         final PredicateFactory<Component> componentPredicateFactory = new PredicateFactory<Component>() {
@@ -294,7 +291,7 @@ public class DiffUtil {
             }
         });
 
-        return diffParams(beforeParams, afterParams, after.uuid());
+        return diffParams(beforeParams, afterParams, after);
     }
 
     /**
@@ -318,7 +315,7 @@ public class DiffUtil {
             }
         });
 
-        return diffParams(beforeParams, afterParams, after.uuid());
+        return diffParams(beforeParams, afterParams, after);
     }
 
 
@@ -393,6 +390,23 @@ public class DiffUtil {
         return ret;
     }
 
+    public Observable<SortedSet<AdaptationOperation>> diffInstanceStatus(Instance before, Instance after) {
+        final SortedSet<AdaptationOperation>[] res;
+        if ((Objects.equals(before.getStarted(), false) || before.getStarted() == null) && Objects.equals(after.getStarted(), true)) {
+            res = new SortedSet[1];
+            res[0] = new TreeSet<>();
+            res[0].add(new StartInstance(after));
+        } else if (Objects.equals(before.getStarted(), true) && Objects.equals(after.getStarted(), false)) {
+            res = new SortedSet[1];
+            res[0] = new TreeSet<>();
+            res[0].add(new StopInstance(after));
+        } else {
+            res = new SortedSet[0];
+        }
+
+        return Observable.from(res);
+    }
+
 
     private static class PortComparator implements PredicateFactory<Port> {
 
@@ -449,17 +463,31 @@ public class DiffUtil {
         }
     }
 
-    private static class RemoveInstanceOperation<T extends KObject> implements Function<T, AdaptationOperation> {
+    private static class RemoveInstanceOperation<T extends Instance> implements Function<T, AdaptationOperation> {
         @Override
         public AdaptationOperation apply(T o) {
-            return new RemoveInstance(o.uuid());
+            return new RemoveInstance(o);
         }
     }
 
-    private static class AddInstanceOperation<T extends KObject> implements Function<T, AdaptationOperation> {
+    private static class AddInstanceOperation<T extends Instance> implements Function<T, AdaptationOperation> {
         @Override
         public AdaptationOperation apply(T o) {
-            return new AddInstance(o.uuid());
+            return new AddInstance(o);
+        }
+    }
+
+    private static class RemoveBindingOperation<T extends Port> implements Function<T, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(T o) {
+            return new RemoveBinding(o);
+        }
+    }
+
+    private static class AddBindingOperation<T extends Port> implements Function<T, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(T o) {
+            return new AddBinding(o);
         }
     }
 

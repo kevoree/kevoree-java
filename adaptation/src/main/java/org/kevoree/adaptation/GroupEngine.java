@@ -18,8 +18,9 @@ public class GroupEngine {
 
         final Observable<SortedSet<AdaptationOperation>> dictionaryOperations = diffUtil.diffDictionary(before, after);
         final Observable<SortedSet<AdaptationOperation>> fragmentDictionaryOperations = diffUtil.diffFragmentDictionary(before, after);
+        final Observable<SortedSet<AdaptationOperation>> status = diffUtil.diffInstanceStatus(before, after);
 
-        return Observable.merge(dictionaryOperations, fragmentDictionaryOperations).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
+        return Observable.merge(dictionaryOperations, fragmentDictionaryOperations, status).reduce(new Func2<SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>, SortedSet<AdaptationOperation>>() {
             @Override
             public SortedSet<AdaptationOperation> call(SortedSet<AdaptationOperation> set0, SortedSet<AdaptationOperation> set1) {
                 set0.addAll(set1);

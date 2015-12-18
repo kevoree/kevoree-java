@@ -1,5 +1,6 @@
 package org.kevoree.adaptation.operation;
 
+import org.kevoree.Param;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
@@ -8,8 +9,8 @@ import org.kevoree.adaptation.operation.util.OperationOrder;
  * Created by mleduc on 16/12/15.
  */
 public class UpdateParam extends AdaptationOperation {
-    public UpdateParam(long uuid) {
-        super(uuid);
+    public UpdateParam(final Param param) {
+        super(param.uuid());
     }
 
     @Override

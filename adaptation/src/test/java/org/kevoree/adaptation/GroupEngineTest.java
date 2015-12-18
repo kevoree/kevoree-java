@@ -4,6 +4,8 @@ import org.KevoreeModel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.kevoree.*;
+import org.kevoree.adaptation.operation.StartInstance;
+import org.kevoree.adaptation.operation.StopInstance;
 import org.kevoree.adaptation.operation.UpdateInstance;
 import org.kevoree.adaptation.operation.UpdateParam;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
@@ -22,6 +24,44 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GroupEngineTest {
     private final GroupEngine groupEngine = new GroupEngine();
+
+    @Test
+    public void testStart() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Group group0 = tm.createGroup(0,0);
+                group0.setStarted(false);
+                final Group group1 = tm.createGroup(0,0);
+                group1.setStarted(true);
+                final SortedSet<AdaptationOperation> stringStream = groupEngine.diff(group0, group1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StartInstance(group1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testStop() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Group group0 = tm.createGroup(0,0);
+                group0.setStarted(true);
+                final Group group1 = tm.createGroup(0,0);
+                group1.setStarted(false);
+                final SortedSet<AdaptationOperation> stringStream = groupEngine.diff(group0, group1).toBlocking().first();
+                Assert.assertNotNull(stringStream);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new StopInstance(group1));
+                assertThat(stringStream).containsExactlyElementsOf(expected);
+            }
+        });
+    }
 
     @Test
     public void testUpdatedFragmentParam() throws Exception {
@@ -47,8 +87,8 @@ public class GroupEngineTest {
                 final SortedSet<AdaptationOperation> res = groupEngine.diff(group0, group1).toBlocking().first();
                 Assert.assertNotNull(res);
                 final Set<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new UpdateParam(stringParam1.uuid()));
-                expected.add(new UpdateInstance(group1.uuid()));
+                expected.add(new UpdateParam(stringParam1));
+                expected.add(new UpdateInstance(group1));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });
