@@ -1,9 +1,9 @@
 package org.kevoree.adaptation.util;
 
+import com.github.zafarkhaja.semver.Version;
 import org.kevoree.*;
 import org.kevoree.Dictionary;
 import org.kevoree.adaptation.observable.*;
-import org.kevoree.adaptation.observable.ObservablePortFactory;
 import org.kevoree.adaptation.operation.*;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.util.comparators.ParamComparator;
@@ -12,7 +12,6 @@ import org.kevoree.adaptation.util.functional.Function;
 import org.kevoree.adaptation.util.functional.Predicate;
 import org.kevoree.adaptation.util.functional.PredicateFactory;
 import org.kevoree.adaptation.util.predicates.ChannelPredicateFactory;
-import org.kevoree.modeling.KObject;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -34,8 +33,86 @@ public class DiffUtil {
     private final ObservableComponentFactory observableComponentFactory = new ObservableComponentFactory();
     private final ObservableFragmentDictionaryFactory observableFragmentDictionaryFactory = new ObservableFragmentDictionaryFactory();
     private final ObservablePortFactory observablePortFactory = new ObservablePortFactory();
+    private final ObservableTypeDefinitionFactory observableTypeDefinitionFactory = new ObservableTypeDefinitionFactory();
     private static final TypeDefEquality typeDefEquality = new TypeDefEquality();
 
+
+    /**
+     * The deploy unit used by a component is the latest of its typedef, sorted by semver of its version for the platform of the node.
+     *
+     * @param before Previous state of the node.
+     * @param after  Current state of the node.
+     * @param platform
+     * @return The list of operation needed to adapt the deploy units.
+     */
+    public Observable<SortedSet<AdaptationOperation>> diffDeployUnit(Node before, Node after, String platform) {
+        final Observable<List<DeployUnit>> listTypeDefBefore = loadTypeDefNode(before, platform);
+        final Observable<List<DeployUnit>> listTypeDefAfter = loadTypeDefNode(after, platform);
+        return searchAdaptations(listTypeDefBefore, listTypeDefAfter, new RemoveDeployUnitOperation(), new AddDeployUnitOperation(), new DeployUnitPredicateFactory());
+    }
+
+    private Observable<List<DeployUnit>> loadTypeDefNode(final Node before, final String platform) {
+        /* elements with type def =
+            - channels
+          - subNodes
+          - group
+          - components
+
+          */
+        final Observable<Channel> listObservable = getAllChannelFromNode(before);
+        final Observable<Node> beforeSubnodes = observableNodeFactory.getSubnodeObservable(before);
+        final Observable<Group> afterGroup = observableNodeFactory.getGroupObservable(before);
+        final Observable<Component> beforeComponents = observableNodeFactory.getComponentObservable(before);
+        return Observable.merge(listObservable, beforeSubnodes, afterGroup, beforeComponents).flatMap(new Func1<Instance, Observable<TypeDefinition>>() {
+            @Override
+            public Observable<TypeDefinition> call(Instance instances) {
+                return observableInstanceFactory.getTypeDefObservable(instances);
+            }
+        }).map(new Func1<TypeDefinition, DeployUnit>() {
+            @Override
+            public DeployUnit call(TypeDefinition typeDefinition) {
+                final List<DeployUnit> first = observableTypeDefinitionFactory.getDeployUnitObservable(typeDefinition).toList().toBlocking().first();
+
+                // first we select the typeDef related to the node's platform.
+                final List<DeployUnit> plat = filteringByPlatform(first);
+
+                // then we sort the according to their semver.
+                Collections.sort(plat, new Comparator<DeployUnit>() {
+                    @Override
+                    public int compare(DeployUnit o1, DeployUnit o2) {
+                        final Version v1 = Version.valueOf(o1.getVersion());
+                        final Version v2 = Version.valueOf(o2.getVersion());
+                        return v1.compareTo(v2);
+                    }
+                });
+
+                // and we select the latest.
+                Collections.reverse(plat);
+                final DeployUnit ret;
+                if(plat.isEmpty()) {
+                    ret = null;
+                } else {
+                    ret = plat.get(0);
+                }
+                return ret;
+            }
+
+            private List<DeployUnit> filteringByPlatform(List<DeployUnit> first) {
+                final List<DeployUnit> plat = new ArrayList<>();
+                for(DeployUnit du: first) {
+                    if(Objects.equals(platform, du.getPlatform())) {
+                       plat.add(du);
+                    }
+                }
+                return plat;
+            }
+        }).filter(new Func1<DeployUnit, Boolean>() {
+            @Override
+            public Boolean call(DeployUnit deployUnit) {
+                return deployUnit != null;
+            }
+        }).toList();
+    }
 
     public Observable<SortedSet<AdaptationOperation>> diffChannel(Node before, Node after) {
         final Observable<List<Channel>> listObservable = getAllChannelFromNode(before).toList();
@@ -65,8 +142,8 @@ public class DiffUtil {
      * @return The serie of operations needed to pass from before to after.
      */
     public Observable<SortedSet<AdaptationOperation>> diffGroup(Node before, Node after) {
-        final Observable<List<Group>> afterGroup = observableNodeFactory.getGroupObservable(after).toList();
         final Observable<List<Group>> beforeGroup = observableNodeFactory.getGroupObservable(before).toList();
+        final Observable<List<Group>> afterGroup = observableNodeFactory.getGroupObservable(after).toList();
         return searchAdaptations(beforeGroup, afterGroup, new RemoveInstanceOperation<Group>(), new AddInstanceOperation<Group>(), new GroupPredicateFactory());
 
     }
@@ -97,7 +174,7 @@ public class DiffUtil {
     /**
      * @param unsortedBeforeParam Previous state of the param.
      * @param unsortedAfterParam  Current state of the param.
-     * @param afterParamOwner   @return The serie of operations needed to pass from before to after.
+     * @param afterParamOwner     @return The serie of operations needed to pass from before to after.
      */
     private Observable<SortedSet<AdaptationOperation>> diffParams(final Observable<Param> unsortedBeforeParam, final Observable<Param> unsortedAfterParam, final Instance afterParamOwner) {
         final Observable<List<Param>> beforeParam = unsortedBeforeParam.toSortedList(new ParamComparator());
@@ -207,18 +284,6 @@ public class DiffUtil {
     public Observable<SortedSet<AdaptationOperation>> diffComponents(Node before, Node after) {
         final Observable<List<Component>> beforeComponents = observableNodeFactory.getComponentObservable(before).toList();
         final Observable<List<Component>> afterComponents = observableNodeFactory.getComponentObservable(after).toList();
-        final Function<Component, AdaptationOperation> componentStringFunction = new Function<Component, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Component n) {
-                return new RemoveInstance(n);
-            }
-        };
-        final Function<Component, AdaptationOperation> componentStringFunction1 = new Function<Component, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Component n) {
-                return new AddInstance(n);
-            }
-        };
         final PredicateFactory<Component> componentPredicateFactory = new PredicateFactory<Component>() {
             @Override
             public Predicate<? super Component> get(final Component prevComponent) {
@@ -230,11 +295,11 @@ public class DiffUtil {
                 };
             }
         };
-        return searchAdaptations(beforeComponents, afterComponents, componentStringFunction, componentStringFunction1, componentPredicateFactory);
+        return searchAdaptations(beforeComponents, afterComponents, new RemoveInstanceOperation<Component>(), new AddInstanceOperation<Component>(), componentPredicateFactory);
     }
 
     private static boolean componentEquality(Component newComponent, Component prevComponent) {
-        final boolean nameEquals = prevComponent.getName().equals(newComponent.getName());
+        final boolean nameEquals = Objects.equals(prevComponent.getName(), newComponent.getName());
         final Boolean sameTypeDef = typeDefEquality.typeDefEquals(prevComponent, newComponent);
         return nameEquals && sameTypeDef;
     }
@@ -510,4 +575,29 @@ public class DiffUtil {
         }
     }
 
+    private class RemoveDeployUnitOperation implements Function<DeployUnit, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(DeployUnit du) {
+            return new RemoveDeployUnit(du);
+        }
+    }
+
+    private class AddDeployUnitOperation implements Function<DeployUnit, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(DeployUnit du) {
+            return new AddDeployUnit(du);
+        }
+    }
+
+    private class DeployUnitPredicateFactory implements PredicateFactory<DeployUnit> {
+        @Override
+        public Predicate<? super DeployUnit> get(final DeployUnit a) {
+            return new Predicate<DeployUnit>() {
+                @Override
+                public boolean test(DeployUnit b) {
+                    return Objects.equals(a.getName(), b.getName()) && Objects.equals(a.getVersion(), b.getVersion()) && Objects.equals(a.getPlatform(), b.getPlatform());
+                }
+            };
+        }
+    }
 }

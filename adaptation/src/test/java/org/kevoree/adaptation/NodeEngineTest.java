@@ -16,10 +16,14 @@ import java.util.TreeSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
+ * TODO :
+ * - what happen if a new type def applicable to the platform is added to a deploy unit at runtime. Should remove the current instance and start another one with the new deploy unit ?
+ * <p>
  * Created by mleduc on 14/12/15.
  */
 public class NodeEngineTest {
     private final NodeEngine nodeEngine = new NodeEngine();
+    private final String platform = "test";
 
     /**
      * Prev : Empty node
@@ -36,7 +40,7 @@ public class NodeEngineTest {
             public void on(Object cb) {
                 final Node node1 = tm.createNode(0, 0);
                 final Node node2 = tm.createNode(0, 0);
-                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 Assert.assertEquals(0, stringStream.size());
             }
@@ -49,11 +53,11 @@ public class NodeEngineTest {
         tm.connect(new KCallback() {
             @Override
             public void on(Object cb) {
-                final Node node0 = tm.createNode(0,0);
+                final Node node0 = tm.createNode(0, 0);
                 node0.setStarted(false);
-                final Node node1 = tm.createNode(0,0);
+                final Node node1 = tm.createNode(0, 0);
                 node1.setStarted(true);
-                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new StartInstance(node1));
@@ -68,10 +72,10 @@ public class NodeEngineTest {
         tm.connect(new KCallback() {
             @Override
             public void on(Object cb) {
-                final Node node0 = tm.createNode(0,0);
-                final Node node1 = tm.createNode(0,0);
+                final Node node0 = tm.createNode(0, 0);
+                final Node node1 = tm.createNode(0, 0);
                 node1.setStarted(false);
-                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 assertThat(stringStream).containsExactlyElementsOf(expected);
@@ -86,10 +90,10 @@ public class NodeEngineTest {
         tm.connect(new KCallback() {
             @Override
             public void on(Object cb) {
-                final Node node0 = tm.createNode(0,0);
-                final Node node1 = tm.createNode(0,0);
+                final Node node0 = tm.createNode(0, 0);
+                final Node node1 = tm.createNode(0, 0);
                 node1.setStarted(true);
-                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new StartInstance(node1));
@@ -104,11 +108,11 @@ public class NodeEngineTest {
         tm.connect(new KCallback() {
             @Override
             public void on(Object cb) {
-                final Node node0 = tm.createNode(0,0);
+                final Node node0 = tm.createNode(0, 0);
                 node0.setStarted(true);
-                final Node node1 = tm.createNode(0,0);
+                final Node node1 = tm.createNode(0, 0);
                 node1.setStarted(false);
-                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new StopInstance(node1));
@@ -135,7 +139,7 @@ public class NodeEngineTest {
                 final Node node = tm.createNode(0, 0);
                 node.setName("subNode0");
                 node2.addSubNodes(node);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -160,7 +164,7 @@ public class NodeEngineTest {
                 node1.addSubNodes(node);
 
                 final Node node2 = tm.createNode(0, 0);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).first().toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).first().toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -194,7 +198,7 @@ public class NodeEngineTest {
                 tdB.setVersion(101);
                 subNode2.addTypeDefinition(tdB);
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(parentNode1, parentNode2).first().toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(parentNode1, parentNode2, platform).first().toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -220,7 +224,7 @@ public class NodeEngineTest {
                 final Node nodeB = tm.createNode(0, 0);
                 nodeB.setName("subNode1");
                 node2.addSubNodes(nodeB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -243,7 +247,7 @@ public class NodeEngineTest {
                 final Component component = tm.createComponent(0, 0);
                 component.setName("cmp0");
                 node2.addComponents(component);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -276,7 +280,7 @@ public class NodeEngineTest {
                 tdB.setVersion(100);
                 componentB.addTypeDefinition(tdB);
                 node2.addComponents(componentB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -299,7 +303,7 @@ public class NodeEngineTest {
                 node1.addComponents(component);
 
                 final Node node2 = tm.createNode(0, 0);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(1, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -324,7 +328,7 @@ public class NodeEngineTest {
                 final Component componentB = tm.createComponent(0, 0);
                 componentB.setName("comp1");
                 node2.addComponents(componentB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -355,7 +359,7 @@ public class NodeEngineTest {
                 booleanParamB.setValue(false);
                 dicB.addParams(booleanParamB);
                 node2.addDictionary(dicB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -388,7 +392,7 @@ public class NodeEngineTest {
                 listParamB.addValues(item1);
                 dicB.addParams(listParamB);
                 node2.addDictionary(dicB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -424,7 +428,7 @@ public class NodeEngineTest {
                 listParamB.addValues(item1);
                 dicB.addParams(listParamB);
                 node2.addDictionary(dicB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new UpdateParam(listParamB));
@@ -459,7 +463,7 @@ public class NodeEngineTest {
                 listParamB.addValues(item1);
                 dicB.addParams(listParamB);
                 node2.addDictionary(dicB);
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node1, node2, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(0, cb2.size());
             }
@@ -492,7 +496,7 @@ public class NodeEngineTest {
                 group1.addTypeDefinition(groupType1);
                 node1.addGroups(group1);
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 Assert.assertEquals(2, cb2.size());
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
@@ -529,7 +533,7 @@ public class NodeEngineTest {
                 node1.addComponents(component1);
 
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new AddInstance(channel));
@@ -577,7 +581,7 @@ public class NodeEngineTest {
                 node1.addComponents(component3);
 
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new AddInstance(component3));
@@ -624,7 +628,7 @@ public class NodeEngineTest {
                 node1.addComponents(component20);
                 node1.addComponents(component30);
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new RemoveInstance(channel2));
@@ -639,18 +643,7 @@ public class NodeEngineTest {
      */
     @Test
     public void testUnlinkComponentToChannelAndNoLinkRemain() {
-        /**
-         * Scénarios :
-         * - ajouter un chan rattaché à aucun composants du noeud
-         * - ajouter un chan sur un deuxième composant alors qu'il est déjà attaché à un autre composant du meme noeud
-         * - supprimer un chan sur un input alors qu'il est déjà rattaché à un autre input du meme noeud
-         * - supprimer un chan sur un input d'un composant ce qui fait qu'il est maintenant complètement détaché du noeud.
-         *
-         */
-
         final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
-
-
         tm.connect(new KCallback() {
             @Override
             public void on(Object cb) {
@@ -684,9 +677,234 @@ public class NodeEngineTest {
                 node1.addComponents(component30);
 
 
-                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1).toBlocking().first();
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testAddDeployUnitSimple() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+                final Node node0 = tm.createNode(0, 0);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component = tm.createComponent(0, 0);
+                final ComponentType componentType = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit = tm.createDeployUnit(0, 0);
+                deployUnit.setName("du1");
+                deployUnit.setPlatform("test");
+                deployUnit.setVersion("1.0.0");
+                componentType.addDeployUnits(deployUnit);
+                component.addTypeDefinition(componentType);
+                node1.addComponents(component);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new AddInstance(component));
+                expected.add(new AddDeployUnit(deployUnit));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testDeployUnitInWrongPlatform() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+                final Node node0 = tm.createNode(0, 0);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component = tm.createComponent(0, 0);
+                final ComponentType componentType = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit = tm.createDeployUnit(0, 0);
+                deployUnit.setName("du1");
+                deployUnit.setPlatform("doesnotexists");
+                deployUnit.setVersion("1.0.0");
+                componentType.addDeployUnits(deployUnit);
+                component.addTypeDefinition(componentType);
+                node1.addComponents(component);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new AddInstance(component));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testRemoveDeployUnitInWrongPlatform() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+
+                final Node node0 = tm.createNode(0, 0);
+                final Component component0 = tm.createComponent(0, 0);
+                final ComponentType typeDefinition0 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit0 = tm.createDeployUnit(0, 0);
+                component0.setName("comp0");
+                typeDefinition0.setName("td0");
+                typeDefinition0.setVersion(1);
+                deployUnit0.setName("du1");
+                deployUnit0.setPlatform("doesnotexists");
+                deployUnit0.setVersion("1.0.0");
+                typeDefinition0.addDeployUnits(deployUnit0);
+                component0.addTypeDefinition(typeDefinition0);
+                node0.addComponents(component0);
+
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final ComponentType typeDefinition1 = tm.createComponentType(0, 0);
+                component1.setName("comp0");
+                typeDefinition1.setName("td0");
+                typeDefinition1.setVersion(1);
+                component1.addTypeDefinition(typeDefinition1);
+                node1.addComponents(component1);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testRemoveDeployUnitInPlatform() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+
+
+                final Node node0 = tm.createNode(0, 0);
+                final Component component0 = tm.createComponent(0, 0);
+                final ComponentType typeDefinition0 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit0 = tm.createDeployUnit(0, 0);
+                component0.setName("comp0");
+                typeDefinition0.setName("td0");
+                typeDefinition0.setVersion(1);
+                deployUnit0.setName("du1");
+                deployUnit0.setPlatform(platform);
+                deployUnit0.setVersion("1.0.0");
+                typeDefinition0.addDeployUnits(deployUnit0);
+                component0.addTypeDefinition(typeDefinition0);
+                node0.addComponents(component0);
+
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final ComponentType typeDefinition1 = tm.createComponentType(0, 0);
+                component1.setName("comp0");
+                typeDefinition1.setName("td0");
+                typeDefinition1.setVersion(1);
+                component1.addTypeDefinition(typeDefinition1);
+                node1.addComponents(component1);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new RemoveDeployUnit(deployUnit0));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testAddTwoComponentWithSameDUAndThenRemoveOnOfThem() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+                final Component component00 = tm.createComponent(0, 0);
+                final Component component01 = tm.createComponent(0, 0);
+                final ComponentType typeDefintion0 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit0 = tm.createDeployUnit(0, 0);
+                component00.setName("comp0");
+                component01.setName("comp1");
+                typeDefintion0.setName("td0");
+                typeDefintion0.setVersion(1);
+                deployUnit0.setName("du0");
+                deployUnit0.setPlatform(platform);
+                deployUnit0.setVersion("1.0.0");
+                typeDefintion0.addDeployUnits(deployUnit0);
+                component00.addTypeDefinition(typeDefintion0);
+                component01.addTypeDefinition(typeDefintion0);
+                node0.addComponents(component00);
+                node0.addComponents(component01);
+
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component10 = tm.createComponent(0, 0);
+                final ComponentType typeDefintion1 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit1 = tm.createDeployUnit(0, 0);
+                component10.setName("comp0");
+                typeDefintion1.setName("td0");
+                typeDefintion1.setVersion(1);
+                deployUnit1.setName("du0");
+                deployUnit1.setPlatform(platform);
+                deployUnit1.setVersion("1.0.0");
+                typeDefintion1.addDeployUnits(deployUnit1);
+                component10.addTypeDefinition(typeDefintion1);
+                node1.addComponents(component10);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new RemoveInstance(component01));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testSelectLatestDeployUnit() {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final ComponentType typeDefintion1 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit1 = tm.createDeployUnit(0, 0);
+                final DeployUnit deployUnit2 = tm.createDeployUnit(0, 0);
+                component1.setName("comp0");
+                typeDefintion1.setName("td0");
+                typeDefintion1.setVersion(1);
+                deployUnit1.setName("du0");
+                deployUnit1.setPlatform(platform);
+                deployUnit1.setVersion("1.0.0");
+                typeDefintion1.addDeployUnits(deployUnit1);
+                deployUnit2.setName("du0");
+                deployUnit2.setPlatform(platform);
+                deployUnit2.setVersion("2.0.0");
+                typeDefintion1.addDeployUnits(deployUnit2);
+                component1.addTypeDefinition(typeDefintion1);
+                node1.addComponents(component1);
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new AddInstance(component1));
+                expected.add(new AddDeployUnit(deployUnit2));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
