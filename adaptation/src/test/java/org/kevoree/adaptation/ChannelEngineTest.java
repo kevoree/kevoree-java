@@ -13,6 +13,7 @@ import org.kevoree.modeling.KCallback;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
 import org.kevoree.modeling.scheduler.impl.DirectScheduler;
 
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -267,6 +268,38 @@ public class ChannelEngineTest {
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new RemoveInstance(inputPortPrinter00.uuid()));
                 expected.add(new RemoveInstance(outputPortTicker00.uuid()));
+                assertThat(res).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testUpdatedFragmentParam() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Channel channel0 = tm.createChannel(0,0);
+                final FragmentDictionary fragmentDictionary0 = tm.createFragmentDictionary(0, 0);
+                final StringParam stringParam0 = tm.createStringParam(0, 0);
+                stringParam0.setName("sp0");
+                stringParam0.setValue("0");
+                fragmentDictionary0.addParams(stringParam0);
+                channel0.addFragmentDictionary(fragmentDictionary0);
+
+                final Channel channel1 = tm.createChannel(0,0);
+                final FragmentDictionary fragmentDictionary1 = tm.createFragmentDictionary(0, 0);
+                final StringParam stringParam1 = tm.createStringParam(0, 0);
+                stringParam1.setName("sp0");
+                stringParam1.setValue("A");
+                fragmentDictionary1.addParams(stringParam1);
+                channel1.addFragmentDictionary(fragmentDictionary1);
+
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(channel0, channel1).toBlocking().first();
+                Assert.assertNotNull(res);
+                final Set<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new UpdateParam(stringParam1.uuid()));
+                expected.add(new UpdateInstance(channel1.uuid()));
                 assertThat(res).containsExactlyElementsOf(expected);
             }
         });

@@ -9,9 +9,13 @@ import org.kevoree.adaptation.operation.RemoveInstance;
 import org.kevoree.adaptation.operation.UpdateInstance;
 import org.kevoree.adaptation.operation.UpdateParam;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
+import org.kevoree.adaptation.util.comparators.ParamComparator;
+import org.kevoree.adaptation.util.comparators.TypeDefEquality;
 import org.kevoree.adaptation.util.functional.Function;
 import org.kevoree.adaptation.util.functional.Predicate;
 import org.kevoree.adaptation.util.functional.PredicateFactory;
+import org.kevoree.adaptation.util.predicates.ChannelPredicateFactory;
+import org.kevoree.modeling.KObject;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -24,16 +28,6 @@ import java.util.*;
  */
 public class DiffUtil {
 
-    /**
-     * Compare two params.
-     */
-    public static final Func2<Param, Param, Integer> PARAM_COMPARATOR = new Func2<Param, Param, Integer>() {
-        @Override
-        public Integer call(Param param, Param param2) {
-            return param.getName().compareTo(param2.getName());
-        }
-    };
-
     private final ObservableNodeFactory observableNodeFactory = new ObservableNodeFactory();
     private final ObservableDictionaryFactory observableDictionaryFactory = new ObservableDictionaryFactory();
     private static final ObservableInstanceFactory observableInstanceFactory = new ObservableInstanceFactory();
@@ -43,32 +37,13 @@ public class DiffUtil {
     private final ObservableComponentFactory observableComponentFactory = new ObservableComponentFactory();
     private final ObservableFragmentDictionaryFactory observableFragmentDictionaryFactory = new ObservableFragmentDictionaryFactory();
     private final ObservablePortFactory observablePortFactory = new ObservablePortFactory();
+    private static final TypeDefEquality typeDefEquality = new TypeDefEquality();
 
 
     public Observable<SortedSet<AdaptationOperation>> diffChannel(Node before, Node after) {
         final Observable<List<Channel>> listObservable = getAllChannelFromNode(before).toList();
         final Observable<List<Channel>> listObservable1 = getAllChannelFromNode(after).toList();
-        return getListObservable(listObservable, listObservable1, new Function<Channel, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Channel x) {
-                return new RemoveInstance(x.uuid());
-            }
-        }, new Function<Channel, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Channel x) {
-                return new AddInstance(x.uuid());
-            }
-        }, new PredicateFactory<Channel>() {
-            @Override
-            public Predicate<? super Channel> get(final Channel a) {
-                return new Predicate<Channel>() {
-                    @Override
-                    public boolean test(Channel b) {
-                        return Objects.equals(a.getName(), b.getName()) && typeDefEquals(a, b);
-                    }
-                };
-            }
-        });
+        return searchAdaptations(listObservable, listObservable1, new RemoveInstanceOperation<Channel>(), new AddInstanceOperation<Channel>(), new ChannelPredicateFactory());
     }
 
     private Observable<Channel> getAllChannelFromNode(Node before) {
@@ -95,30 +70,7 @@ public class DiffUtil {
     public Observable<SortedSet<AdaptationOperation>> diffGroup(Node before, Node after) {
         final Observable<List<Group>> afterGroup = observableNodeFactory.getGroupObservable(after).toList();
         final Observable<List<Group>> beforeGroup = observableNodeFactory.getGroupObservable(before).toList();
-        final Function<Group, AdaptationOperation> trFunction = new Function<Group, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Group x) {
-                return new RemoveInstance(x.uuid());
-            }
-        };
-        final Function<Group, AdaptationOperation> trFunction1 = new Function<Group, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Group y) {
-                return new AddInstance(y.uuid());
-            }
-        };
-        final PredicateFactory<Group> tPredicateFactory = new PredicateFactory<Group>() {
-            @Override
-            public Predicate<? super Group> get(final Group a) {
-                return new Predicate<Group>() {
-                    @Override
-                    public boolean test(Group b) {
-                        return a.getName().equals(b.getName()) && typeDefEquals(a, b);
-                    }
-                };
-            }
-        };
-        return getListObservable(beforeGroup, afterGroup, trFunction, trFunction1, tPredicateFactory);
+        return searchAdaptations(beforeGroup, afterGroup, new RemoveInstanceOperation<Group>(), new AddInstanceOperation<Group>(), new GroupPredicateFactory());
 
     }
 
@@ -142,74 +94,84 @@ public class DiffUtil {
                 return observableDictionaryFactory.getParamObservable(x);
             }
         });
-        return diffParams(paramObservable, before.uuid(), paramObservable1, after.uuid());
+        return diffParams(paramObservable, paramObservable1, after.uuid());
     }
 
     /**
      * @param unsortedBeforeParam Previous state of the param.
-     * @param beforeParamOwnerId
      * @param unsortedAfterParam  Current state of the param.
      * @param afterParamOwnerId   @return The serie of operations needed to pass from before to after.
      */
-    private Observable<SortedSet<AdaptationOperation>> diffParams(Observable<Param> unsortedBeforeParam, long beforeParamOwnerId, Observable<Param> unsortedAfterParam, final long afterParamOwnerId) {
-        final Observable<List<Param>> beforeParam = unsortedBeforeParam.toSortedList(PARAM_COMPARATOR);
-        final Observable<List<Param>> afterParam = unsortedAfterParam.toSortedList(PARAM_COMPARATOR);
+    private Observable<SortedSet<AdaptationOperation>> diffParams(final Observable<Param> unsortedBeforeParam, final Observable<Param> unsortedAfterParam, final long afterParamOwnerId) {
+        final Observable<List<Param>> beforeParam = unsortedBeforeParam.toSortedList(new ParamComparator());
+        final Observable<List<Param>> afterParam = unsortedAfterParam.toSortedList(new ParamComparator());
         return Observable.zip(beforeParam, afterParam, new Func2<List<Param>, List<Param>, SortedSet<AdaptationOperation>>() {
             @Override
             public SortedSet<AdaptationOperation> call(List<Param> params, List<Param> params2) {
                 final SortedSet<AdaptationOperation> res = new TreeSet<>();
                 for (int i = 0; i < Math.min(params.size(), params2.size()); i++) {
-                    final Param prev = params.get(i);
-                    final Param next = params2.get(i);
-                    if (!(prev == null || next == null)) {
-                        if (prev instanceof BooleanParam && next instanceof BooleanParam) {
-                            if (!Objects.equals(((BooleanParam) prev).getValue(), ((BooleanParam) next).getValue())) {
-                                res.add(new UpdateParam(next.uuid()));
-                                res.add(new UpdateInstance(afterParamOwnerId));
-                            }
-                        } else if (prev instanceof ListParam && next instanceof ListParam) {
-                            final Observable<List<Item>> beforeListItem = observableListParamFactory.getValuesObservable((ListParam) prev).toList();
-                            final Observable<List<Item>> afterListItem = observableListParamFactory.getValuesObservable((ListParam) next).toList();
-                            res.addAll(Observable.zip(beforeListItem, afterListItem, new Func2<List<Item>, List<Item>, SortedSet<AdaptationOperation>>() {
-                                @Override
-                                public SortedSet<AdaptationOperation> call(List<Item> items, List<Item> items2) {
-
-                                    boolean changed;
-                                    if (items.size() != items2.size()) {
-                                        changed = true;
-                                    } else {
-                                        changed = false;
-                                        for (int i1 = 0; i1 < items.size(); i1++) {
-                                            if (!Objects.equals(items.get(i1).getValue(), items2.get(i1).getValue())) {
-                                                changed = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    final SortedSet<AdaptationOperation> ret = new TreeSet<>();
-                                    if (changed) {
-                                        ret.add(new UpdateParam(next.uuid()));
-                                        ret.add(new UpdateInstance(afterParamOwnerId));
-                                    }
-                                    return ret;
-                                }
-                            }).toBlocking().first());
-                        } else if (prev instanceof NumberParam && next instanceof NumberParam) {
-                            if (!Objects.equals(((NumberParam) prev).getValue(), ((NumberParam) next).getValue())) {
-                                res.add(new UpdateParam(next.uuid()));
-                                res.add(new UpdateInstance(afterParamOwnerId));
-                            }
-                        } else if (prev instanceof StringParam && next instanceof StringParam) {
-                            if (!Objects.equals(((StringParam) prev).getValue(), ((StringParam) next).getValue())) {
-                                res.add(new UpdateParam(next.uuid()));
-                                res.add(new UpdateInstance(afterParamOwnerId));
-                            }
-                        }
-                    }
+                    compareParams(res, params.get(i), params2.get(i), afterParamOwnerId);
                 }
                 return res;
             }
         });
+    }
+
+    private void compareParams(final SortedSet<AdaptationOperation> res, final Param prev, final Param next, final long afterParamOwnerId) {
+        if (!(prev == null || next == null)) {
+            if (prev instanceof BooleanParam && next instanceof BooleanParam) {
+                compareParamsBoolean(res, (BooleanParam) prev, next, afterParamOwnerId);
+            } else if (prev instanceof ListParam && next instanceof ListParam) {
+                compareParamsList(res, (ListParam) prev, next, afterParamOwnerId);
+            } else if (prev instanceof NumberParam && next instanceof NumberParam) {
+                compareParams(res, next, afterParamOwnerId, ((NumberParam) prev).getValue(), ((NumberParam) next).getValue());
+            } else if (prev instanceof StringParam && next instanceof StringParam) {
+                compareParams(res, next, afterParamOwnerId, ((StringParam) prev).getValue(), ((StringParam) next).getValue());
+            }
+        }
+    }
+
+    private void compareParams(SortedSet<AdaptationOperation> res, Param next, long afterParamOwnerId, String value, String value2) {
+        if (!Objects.equals(value, value2)) {
+            res.add(new UpdateParam(next.uuid()));
+            res.add(new UpdateInstance(afterParamOwnerId));
+        }
+    }
+
+    private void compareParamsList(SortedSet<AdaptationOperation> res, ListParam prev, final Param next, final long afterParamOwnerId) {
+        final Observable<List<Item>> beforeListItem = observableListParamFactory.getValuesObservable(prev).toList();
+        final Observable<List<Item>> afterListItem = observableListParamFactory.getValuesObservable((ListParam) next).toList();
+        res.addAll(Observable.zip(beforeListItem, afterListItem, new Func2<List<Item>, List<Item>, SortedSet<AdaptationOperation>>() {
+            @Override
+            public SortedSet<AdaptationOperation> call(List<Item> items, List<Item> items2) {
+
+                boolean changed;
+                if (items.size() != items2.size()) {
+                    changed = true;
+                } else {
+                    changed = false;
+                    for (int i1 = 0; i1 < items.size(); i1++) {
+                        if (!Objects.equals(items.get(i1).getValue(), items2.get(i1).getValue())) {
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+                final SortedSet<AdaptationOperation> ret = new TreeSet<>();
+                if (changed) {
+                    ret.add(new UpdateParam(next.uuid()));
+                    ret.add(new UpdateInstance(afterParamOwnerId));
+                }
+                return ret;
+            }
+        }).toBlocking().first());
+    }
+
+    private void compareParamsBoolean(SortedSet<AdaptationOperation> res, BooleanParam prev, Param next, long afterParamOwnerId) {
+        if (!Objects.equals(prev.getValue(), ((BooleanParam) next).getValue())) {
+            res.add(new UpdateParam(next.uuid()));
+            res.add(new UpdateInstance(afterParamOwnerId));
+        }
     }
 
     /**
@@ -220,29 +182,9 @@ public class DiffUtil {
      * @return The serie of operations needed to pass from before to after.
      */
     public Observable<SortedSet<AdaptationOperation>> diffOutput(Channel before, Channel after) {
-        final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getOutputObservable(before).map(new Func1<OutputPort, Port>() {
-            @Override
-            public Port call(OutputPort outputPort) {
-                return outputPort;
-            }
-        }).toList();
-        final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getOutputObservable(after).map(new Func1<OutputPort, Port>() {
-            @Override
-            public Port call(OutputPort outputPort) {
-                return outputPort;
-            }
-        }).toList();
-        return getListObservable(beforeInputPorts, afterInputPorts, new Function<Port, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Port x) {
-                return new RemoveInstance(x.uuid());
-            }
-        }, new Function<Port, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Port x) {
-                return new AddInstance(x.uuid());
-            }
-        }, new PortComparator(observablePortFactory, observableComponentFactory));
+        final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getOutputObservable(before).map(new Upcast<Port>()).toList();
+        final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getOutputObservable(after).map(new Upcast<Port>()).toList();
+        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveInstanceOperation<Port>(), new AddInstanceOperation<Port>(), new PortComparator(observablePortFactory, observableComponentFactory));
     }
 
     /**
@@ -253,30 +195,9 @@ public class DiffUtil {
      * @return The serie of operations needed to pass from before to after.
      */
     public Observable<SortedSet<AdaptationOperation>> diffInput(Channel before, Channel after) {
-        final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getInputObservable(before).map(new Func1<InputPort, Port>() {
-            @Override
-            public Port call(InputPort inputPort) {
-                return inputPort;
-            }
-        }).toList();
-        final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getInputObservable(after).map(new Func1<InputPort, Port>() {
-            @Override
-            public Port call(InputPort inputPort) {
-                return inputPort;
-            }
-        }).toList();
-
-        return getListObservable(beforeInputPorts, afterInputPorts, new Function<Port, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Port x) {
-                return new RemoveInstance(x.uuid());
-            }
-        }, new Function<Port, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Port x) {
-                return new AddInstance(x.uuid());
-            }
-        }, new PortComparator(observablePortFactory, observableComponentFactory));
+        final Observable<List<Port>> beforeInputPorts = this.observableChannelFactory.getInputObservable(before).map(new Upcast<Port>()).toList();
+        final Observable<List<Port>> afterInputPorts = this.observableChannelFactory.getInputObservable(after).map(new Upcast<Port>()).toList();
+        return searchAdaptations(beforeInputPorts, afterInputPorts, new RemoveInstanceOperation<Port>(), new AddInstanceOperation<Port>(), new PortComparator(observablePortFactory, observableComponentFactory));
     }
 
     /**
@@ -312,12 +233,12 @@ public class DiffUtil {
                 };
             }
         };
-        return getListObservable(beforeComponents, afterComponents, componentStringFunction, componentStringFunction1, componentPredicateFactory);
+        return searchAdaptations(beforeComponents, afterComponents, componentStringFunction, componentStringFunction1, componentPredicateFactory);
     }
 
     private static boolean componentEquality(Component newComponent, Component prevComponent) {
         final boolean nameEquals = prevComponent.getName().equals(newComponent.getName());
-        final Boolean sameTypeDef = typeDefEquals(prevComponent, newComponent);
+        final Boolean sameTypeDef = typeDefEquality.typeDefEquals(prevComponent, newComponent);
         return nameEquals && sameTypeDef;
     }
 
@@ -331,18 +252,6 @@ public class DiffUtil {
     public Observable<SortedSet<AdaptationOperation>> diffSubnodes(Node before, Node after) {
         final Observable<List<Node>> beforeSubnodes = observableNodeFactory.getSubnodeObservable(before).toList();
         final Observable<List<Node>> afterSubnodes = observableNodeFactory.getSubnodeObservable(after).toList();
-        final Function<Node, AdaptationOperation> nodeStringFunction = new Function<Node, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Node n) {
-                return new RemoveInstance(n.uuid());
-            }
-        };
-        final Function<Node, AdaptationOperation> nodeStringFunction1 = new Function<Node, AdaptationOperation>() {
-            @Override
-            public AdaptationOperation apply(Node n) {
-                return new AddInstance(n.uuid());
-            }
-        };
         final PredicateFactory<Node> nodePredicateFactory = new PredicateFactory<Node>() {
             @Override
             public Predicate<? super Node> get(final Node prevNode) {
@@ -354,14 +263,14 @@ public class DiffUtil {
                 };
             }
         };
-        return getListObservable(beforeSubnodes, afterSubnodes, nodeStringFunction, nodeStringFunction1, nodePredicateFactory);
+        return searchAdaptations(beforeSubnodes, afterSubnodes, new RemoveInstanceOperation<Node>(), new AddInstanceOperation<Node>(), nodePredicateFactory);
     }
 
     private static boolean nodeEquality(Node prev, Node current) {
         final String prevName = prev.getName();
         final String currentName = current.getName();
         final boolean nameEquality = Objects.equals(prevName, currentName);
-        return nameEquality && typeDefEquals(prev, current);
+        return nameEquality && typeDefEquality.typeDefEquals(prev, current);
     }
 
     /**
@@ -385,7 +294,7 @@ public class DiffUtil {
             }
         });
 
-        return diffParams(beforeParams, before.uuid(), afterParams, after.uuid());
+        return diffParams(beforeParams, afterParams, after.uuid());
     }
 
     /**
@@ -409,24 +318,9 @@ public class DiffUtil {
             }
         });
 
-        return diffParams(beforeParams, before.uuid(), afterParams, after.uuid());
+        return diffParams(beforeParams, afterParams, after.uuid());
     }
 
-    /**
-     * @param previous The previous instance
-     * @param next     The current instance
-     * @return True if previous and next shares the same type definition.
-     */
-    private static Boolean typeDefEquals(Instance previous, Instance next) {
-        final Observable<TypeDefinition> previousTypeDefinition = observableInstanceFactory.getTypeDefObservable(previous);
-        final Observable<TypeDefinition> nextTypeDefinition = observableInstanceFactory.getTypeDefObservable(next);
-        return Observable.zip(nextTypeDefinition, previousTypeDefinition, new Func2<TypeDefinition, TypeDefinition, Boolean>() {
-            @Override
-            public Boolean call(TypeDefinition typeDef0, TypeDefinition typeDef1) {
-                return typeDef0.getName().equals(typeDef1.getName()) && typeDef0.getVersion().equals(typeDef1.getVersion());
-            }
-        }).toBlocking().firstOrDefault(true);
-    }
 
     /**
      * @param before                  A list of element in the previous state.
@@ -438,7 +332,7 @@ public class DiffUtil {
      * @param <T>                     The type of the elements contained in before and after.
      * @return A list of elements.
      */
-    private <R, T> Observable<SortedSet<R>> getListObservable(final Observable<List<T>> before, final Observable<List<T>> after, final Function<T, R> removedElementOperation, final Function<T, R> addElementOperation, final PredicateFactory<T> comparingElements) {
+    private <R, T> Observable<SortedSet<R>> searchAdaptations(final Observable<List<T>> before, final Observable<List<T>> after, final Function<T, R> removedElementOperation, final Function<T, R> addElementOperation, final PredicateFactory<T> comparingElements) {
         return before.zipWith(after, new Func2<List<T>, List<T>, SortedSet<R>>() {
             @Override
             public SortedSet<R> call(List<T> elem0, List<T> elem1) {
@@ -554,4 +448,38 @@ public class DiffUtil {
             };
         }
     }
+
+    private static class RemoveInstanceOperation<T extends KObject> implements Function<T, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(T o) {
+            return new RemoveInstance(o.uuid());
+        }
+    }
+
+    private static class AddInstanceOperation<T extends KObject> implements Function<T, AdaptationOperation> {
+        @Override
+        public AdaptationOperation apply(T o) {
+            return new AddInstance(o.uuid());
+        }
+    }
+
+    private static class GroupPredicateFactory implements PredicateFactory<Group> {
+        @Override
+        public Predicate<? super Group> get(final Group a) {
+            return new Predicate<Group>() {
+                @Override
+                public boolean test(Group b) {
+                    return a.getName().equals(b.getName()) && typeDefEquality.typeDefEquals(a, b);
+                }
+            };
+        }
+    }
+
+    private static class Upcast<T> implements Func1<T, T> {
+        @Override
+        public T call(T inputPort) {
+            return inputPort;
+        }
+    }
+
 }

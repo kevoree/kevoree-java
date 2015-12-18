@@ -34,7 +34,7 @@ public class KevoreeCore implements Runnable, ModelService {
             @Override
             public void on(Object o) {
                 final KListener listener = kModel.createListener(0);
-                kModel.manager().index(0, System.currentTimeMillis(), "root", new KCallback<KObjectIndex>() {
+                kModel.manager().index(0L, System.currentTimeMillis(), "root", false, new KCallback<KObjectIndex>() { // TODO : defining precisely "createIfAbsent"
                     @Override
                     public void on(KObjectIndex index) {
                         if (index == null) {

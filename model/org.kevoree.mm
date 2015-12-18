@@ -15,6 +15,7 @@ class org.kevoree.Instance extends org.kevoree.Element {
     with instantiation "false"
 
     att name: String with index
+    att started: Bool
 
     rel typeDefinition: org.kevoree.TypeDefinition with maxBound 1
     rel dictionary: org.kevoree.Dictionary with maxBound 1
