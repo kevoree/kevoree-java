@@ -16,11 +16,11 @@ public class NodeEngine {
     private DiffUtil diffUtil = new DiffUtil();
 
     public Observable<SortedSet<AdaptationOperation>> diff(final Node before, final Node after, String platform) {
-        final Observable<SortedSet<AdaptationOperation>> nodes = diffUtil.diffSubnodes(before, after);
+        final Observable<SortedSet<AdaptationOperation>> nodes = diffUtil.diffSubnodes(before, after, platform);
         final Observable<SortedSet<AdaptationOperation>> components = diffUtil.diffComponents(before, after, platform);
         final Observable<SortedSet<AdaptationOperation>> dictionary = diffUtil.diffDictionary(before, after);
-        final Observable<SortedSet<AdaptationOperation>> group = diffUtil.diffGroup(before, after);
-        final Observable<SortedSet<AdaptationOperation>> channel = diffUtil.diffChannel(before, after);
+        final Observable<SortedSet<AdaptationOperation>> group = diffUtil.diffGroup(before, after, platform);
+        final Observable<SortedSet<AdaptationOperation>> channel = diffUtil.diffChannel(before, after, platform);
         final Observable<SortedSet<AdaptationOperation>> status = diffUtil.diffInstanceStatus(before, after);
         final Observable<SortedSet<AdaptationOperation>> deployUnit = diffUtil.diffDeployUnit(before, after, platform);
 

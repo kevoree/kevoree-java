@@ -1,7 +1,7 @@
 package org.kevoree.adaptation.business.comparators;
 
-import org.kevoree.Component;
 import org.kevoree.DeployUnit;
+import org.kevoree.Instance;
 import org.kevoree.adaptation.business.DiffUtil;
 import rx.Observable;
 
@@ -10,8 +10,8 @@ import java.util.Objects;
 /**
  * Created by mleduc on 21/12/15.
  */
-public class ComponentEquality {
-    public static boolean componentEquality(Component newComponent, Component prevComponent, String platform) {
+public class InstanceEquality {
+    public static boolean componentEquality(Instance newComponent, Instance prevComponent, String platform) {
         final boolean nameEquals = Objects.equals(prevComponent.getName(), newComponent.getName());
         final boolean sameTypeDef = new TypeDefEquality().typeDefEquals(prevComponent, newComponent);
 

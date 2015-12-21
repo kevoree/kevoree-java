@@ -3,7 +3,6 @@ package org.kevoree.adaptation.business.comparators;
 import org.kevoree.Component;
 import org.kevoree.Node;
 import org.kevoree.Port;
-import org.kevoree.adaptation.business.DiffUtil;
 import org.kevoree.adaptation.business.functional.Predicate;
 import org.kevoree.adaptation.business.functional.PredicateFactory;
 import org.kevoree.adaptation.observable.ObservableComponentFactory;
@@ -43,13 +42,13 @@ public class PortEquality implements PredicateFactory<Port> {
                         @Override
                         public Boolean call(Component component, Component component2) {
                             final boolean ret;
-                            if (ComponentEquality.componentEquality(component, component2, platform)) {
+                            if (InstanceEquality.componentEquality(component, component2, platform)) {
                                 final Observable<Node> hostA = observableComponentFactory.getHostObservable(component);
                                 final Observable<Node> hostB = observableComponentFactory.getHostObservable(component2);
                                 final Boolean res = Observable.zip(hostA, hostB, new Func2<Node, Node, Boolean>() {
                                     @Override
                                     public Boolean call(Node node, Node node2) {
-                                        final boolean res = NodeEquality.nodeEquality(node, node2);
+                                        final boolean res = InstanceEquality.componentEquality(node, node2, platform);
                                         return res;
                                     }
                                 }).toBlocking().first();

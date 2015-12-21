@@ -3,7 +3,6 @@ package org.kevoree.adaptation;
 import org.KevoreeModel;
 import org.junit.Assert;
 import org.junit.Test;
-import org.kevoree.Channel;
 import org.kevoree.Component;
 import org.kevoree.Dictionary;
 import org.kevoree.StringParam;

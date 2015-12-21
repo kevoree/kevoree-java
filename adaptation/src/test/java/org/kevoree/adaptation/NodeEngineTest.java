@@ -518,25 +518,25 @@ public class NodeEngineTest {
             @Override
             public void on(Object cb) {
                 final Node node0 = tm.createNode(0, 0);
-                final Component component = tm.createComponent(0, 0);
-                component.setName("comp0");
-                node0.addComponents(component);
+                final Component component0 = tm.createComponent(0, 0);
+                component0.setName("comp0");
+                node0.addComponents(component0);
 
                 final Node node1 = tm.createNode(0, 0);
                 final Component component1 = tm.createComponent(0, 0);
+                final OutputPort outputPort1 = tm.createOutputPort(0, 0);
+                final Channel channel1 = tm.createChannel(0, 0);
                 component1.setName("comp0");
-                final OutputPort outputPort = tm.createOutputPort(0, 0);
-                final Channel channel = tm.createChannel(0, 0);
-                channel.setName("chan0");
-                outputPort.addChannels(channel);
-                component1.addOutputs(outputPort);
+                channel1.setName("chan0");
+                outputPort1.addChannels(channel1);
+                component1.addOutputs(outputPort1);
                 node1.addComponents(component1);
 
 
                 final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
                 Assert.assertNotNull(cb2);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
-                expected.add(new AddInstance(channel));
+                expected.add(new AddInstance(channel1));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });
@@ -905,6 +905,118 @@ public class NodeEngineTest {
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new AddInstance(component1));
                 expected.add(new AddDeployUnit(deployUnit2));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testAddNewDeployUnitComponent() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+                final Component component0 = tm.createComponent(0, 0);
+                final ComponentType componentType0 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit00 = tm.createDeployUnit(0, 0);
+                component0.setName("comp0");
+                componentType0.setName("td0");
+                componentType0.setVersion(1);
+                deployUnit00.setPlatform(platform);
+                deployUnit00.setName("du0");
+                deployUnit00.setVersion("1.0.0");
+                componentType0.addDeployUnits(deployUnit00);
+                component0.addTypeDefinition(componentType0);
+                node0.addComponents(component0);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final ComponentType componentType1 = tm.createComponentType(0, 0);
+                final DeployUnit deployUnit10 = tm.createDeployUnit(0, 0);
+                final DeployUnit deployUnit11 = tm.createDeployUnit(0, 0);
+                component1.setName("comp0");
+                componentType1.setName("td0");
+                componentType1.setVersion(1);
+                deployUnit10.setPlatform(platform);
+                deployUnit10.setName("du0");
+                deployUnit10.setVersion("1.0.0");
+                deployUnit11.setPlatform(platform);
+                deployUnit11.setName("du0");
+                deployUnit11.setVersion("2.0.0");
+                componentType1.addDeployUnits(deployUnit10);
+                componentType1.addDeployUnits(deployUnit11);
+                component1.addTypeDefinition(componentType1);
+                node1.addComponents(component1);
+
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new RemoveInstance(component0));
+                expected.add(new AddInstance(component1));
+                expected.add(new RemoveDeployUnit(deployUnit00));
+                expected.add(new AddDeployUnit(deployUnit11));
+                assertThat(cb2).containsExactlyElementsOf(expected);
+            }
+        });
+    }
+
+    @Test
+    public void testAddNewDeployUnitChannel() throws Exception {
+        final KevoreeModel tm = new KevoreeModel(DataManagerBuilder.create().withScheduler(new DirectScheduler()).build());
+        tm.connect(new KCallback() {
+            @Override
+            public void on(Object cb) {
+                final Node node0 = tm.createNode(0, 0);
+                final Channel chan0 = tm.createChannel(0, 0);
+                final ChannelType channelType0 = tm.createChannelType(0, 0);
+                final DeployUnit deployUnit00 = tm.createDeployUnit(0, 0);
+                final Component component0 = tm.createComponent(0, 0);
+                final InputPort inputPort0 = tm.createInputPort(0, 0);
+                chan0.setName("comp0");
+                channelType0.setName("td0");
+                channelType0.setVersion(1);
+                deployUnit00.setPlatform(platform);
+                deployUnit00.setName("du0");
+                deployUnit00.setVersion("1.0.0");
+                channelType0.addDeployUnits(deployUnit00);
+                chan0.addTypeDefinition(channelType0);
+                inputPort0.addChannels(chan0);
+                component0.addInputs(inputPort0);
+                node0.addComponents(component0);
+
+                final Node node1 = tm.createNode(0, 0);
+                final Channel chan1 = tm.createChannel(0, 0);
+                final ChannelType channelType1 = tm.createChannelType(0, 0);
+                final DeployUnit deployUnit10 = tm.createDeployUnit(0, 0);
+                final DeployUnit deployUnit11 = tm.createDeployUnit(0, 0);
+                final Component component1 = tm.createComponent(0, 0);
+                final InputPort inputPort1 = tm.createInputPort(0, 0);
+                chan1.setName("comp0");
+                channelType1.setName("td0");
+                channelType1.setVersion(1);
+                deployUnit10.setPlatform(platform);
+                deployUnit10.setName("du0");
+                deployUnit10.setVersion("1.0.0");
+                deployUnit11.setPlatform(platform);
+                deployUnit11.setName("du0");
+                deployUnit11.setVersion("2.0.0");
+                channelType1.addDeployUnits(deployUnit10);
+                channelType1.addDeployUnits(deployUnit11);
+                chan1.addTypeDefinition(channelType1);
+                inputPort1.addChannels(chan1);
+                component1.addInputs(inputPort1);
+                node1.addComponents(component1);
+
+
+                final SortedSet<AdaptationOperation> cb2 = nodeEngine.diff(node0, node1, platform).toBlocking().first();
+                Assert.assertNotNull(cb2);
+                final TreeSet<AdaptationOperation> expected = new TreeSet<>();
+                expected.add(new RemoveDeployUnit(deployUnit00));
+                expected.add(new AddDeployUnit(deployUnit11));
+                expected.add(new RemoveInstance(chan0));
+                expected.add(new AddInstance(chan1));
                 assertThat(cb2).containsExactlyElementsOf(expected);
             }
         });

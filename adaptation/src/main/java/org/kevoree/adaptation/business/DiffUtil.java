@@ -5,7 +5,6 @@ import org.kevoree.Dictionary;
 import org.kevoree.adaptation.business.comparators.*;
 import org.kevoree.adaptation.business.functional.*;
 import org.kevoree.adaptation.business.operation.*;
-import org.kevoree.adaptation.business.predicates.ChannelPredicateFactory;
 import org.kevoree.adaptation.observable.*;
 import org.kevoree.adaptation.operation.StartInstance;
 import org.kevoree.adaptation.operation.StopInstance;
@@ -49,10 +48,10 @@ public class DiffUtil {
         return searchAdaptations(listTypeDefBefore, listTypeDefAfter, new RemoveDeployUnitOperation(), new AddDeployUnitOperation(), new DeployUnitEquality());
     }
 
-    public Observable<SortedSet<AdaptationOperation>> diffChannel(Node before, Node after) {
+    public Observable<SortedSet<AdaptationOperation>> diffChannel(Node before, Node after, String platform) {
         final Observable<List<Channel>> listObservable1 = getAllChannelFromNode(after).toList();
         final Observable<List<Channel>> listObservable = getAllChannelFromNode(before).toList();
-        return searchAdaptations(listObservable, listObservable1, new RemoveInstanceOperation<Channel>(), new AddInstanceOperation<Channel>(), new ChannelPredicateFactory());
+        return searchAdaptations(listObservable, listObservable1, new RemoveInstanceOperation<Channel>(), new AddInstanceOperation<Channel>(), new InstanceEqualityFactory<Channel>(platform));
     }
 
     /**
@@ -60,12 +59,13 @@ public class DiffUtil {
      *
      * @param before Previous state of the node.
      * @param after  Current state of the node.
+     * @param platform
      * @return The serie of operations needed to pass from before to after.
      */
-    public Observable<SortedSet<AdaptationOperation>> diffGroup(Node before, Node after) {
+    public Observable<SortedSet<AdaptationOperation>> diffGroup(Node before, Node after, final String platform) {
         final Observable<List<Group>> beforeGroup = observableNodeFactory.getGroupObservable(before).toList();
         final Observable<List<Group>> afterGroup = observableNodeFactory.getGroupObservable(after).toList();
-        return searchAdaptations(beforeGroup, afterGroup, new RemoveInstanceOperation<Group>(), new AddInstanceOperation<Group>(), new GroupEquality());
+        return searchAdaptations(beforeGroup, afterGroup, new RemoveInstanceOperation<Group>(), new AddInstanceOperation<Group>(), new InstanceEqualityFactory(platform));
 
     }
 
@@ -121,7 +121,7 @@ public class DiffUtil {
                 return new Predicate<Component>() {
                     @Override
                     public boolean test(Component newComponent) {
-                        return ComponentEquality.componentEquality(newComponent, prevComponent, platform);
+                        return InstanceEquality.componentEquality(newComponent, prevComponent, platform);
                     }
                 };
             }
@@ -148,9 +148,10 @@ public class DiffUtil {
      *
      * @param before The previous state of the node.
      * @param after  The current state of the node.
+     * @param platform
      * @return The serie of operations needed to pass from before to after.
      */
-    public Observable<SortedSet<AdaptationOperation>> diffSubnodes(Node before, Node after) {
+    public Observable<SortedSet<AdaptationOperation>> diffSubnodes(Node before, Node after, final String platform) {
         final Observable<List<Node>> beforeSubnodes = observableNodeFactory.getSubnodeObservable(before).toList();
         final Observable<List<Node>> afterSubnodes = observableNodeFactory.getSubnodeObservable(after).toList();
         final PredicateFactory<Node> nodePredicateFactory = new PredicateFactory<Node>() {
@@ -159,7 +160,7 @@ public class DiffUtil {
                 return new Predicate<Node>() {
                     @Override
                     public boolean test(Node node) {
-                        return NodeEquality.nodeEquality(prevNode, node);
+                        return InstanceEquality.componentEquality(prevNode, node, platform);
                     }
                 };
             }
