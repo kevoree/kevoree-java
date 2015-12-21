@@ -1,9 +1,8 @@
 package org.kevoree.adaptation;
 
 import org.kevoree.Component;
-import org.kevoree.Node;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
-import org.kevoree.adaptation.util.DiffUtil;
+import org.kevoree.adaptation.business.DiffUtil;
 import rx.Observable;
 import rx.functions.Func2;
 

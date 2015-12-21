@@ -1,4 +1,4 @@
-package org.kevoree.adaptation.util.functional;
+package org.kevoree.adaptation.business.functional;
 
 /**
  * Equivalent to a call to a method with one paramter a void retur type.

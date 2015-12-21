@@ -4,7 +4,7 @@ import org.kevoree.Component;
 import org.kevoree.Group;
 import org.kevoree.Node;
 import org.kevoree.adaptation.observable.util.ObservableDispatcher;
-import org.kevoree.adaptation.util.functional.Consumer;
+import org.kevoree.adaptation.business.functional.Consumer;
 import rx.Observable;
 import rx.Subscriber;
 

@@ -1,10 +1,9 @@
-package org.kevoree.adaptation.util.predicates;
+package org.kevoree.adaptation.business.predicates;
 
 import org.kevoree.Channel;
-import org.kevoree.adaptation.util.DiffUtil;
-import org.kevoree.adaptation.util.comparators.TypeDefEquality;
-import org.kevoree.adaptation.util.functional.Predicate;
-import org.kevoree.adaptation.util.functional.PredicateFactory;
+import org.kevoree.adaptation.business.comparators.TypeDefEquality;
+import org.kevoree.adaptation.business.functional.Predicate;
+import org.kevoree.adaptation.business.functional.PredicateFactory;
 
 import java.util.Objects;
 

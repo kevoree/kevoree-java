@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ChannelEngineTest {
 
     private final ChannelEngine channelEngine = new ChannelEngine();
+    private String platform = "test";
 
     @Test
     public void test() throws Exception {
@@ -33,7 +34,7 @@ public class ChannelEngineTest {
                 chan0.setStarted(false);
                 final Channel chan1 = tm.createChannel(0, 0);
                 chan1.setStarted(false);
-                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 Assert.assertEquals(0, stringStream.size());
             }
@@ -50,7 +51,7 @@ public class ChannelEngineTest {
                 chan0.setStarted(false);
                 final Channel chan1 = tm.createChannel(0, 0);
                 chan1.setStarted(true);
-                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new StartInstance(chan1));
@@ -69,7 +70,7 @@ public class ChannelEngineTest {
                 chan0.setStarted(true);
                 final Channel chan1 = tm.createChannel(0, 0);
                 chan1.setStarted(false);
-                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> stringStream = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(stringStream);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new StopInstance(chan1));
@@ -110,7 +111,7 @@ public class ChannelEngineTest {
                 param12.setValue(true);
                 dictionnary1.addParams(param12);
                 chan1.addDictionary(dictionnary1);
-                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(res);
                 Assert.assertEquals(0, res.size());
             }
@@ -149,7 +150,7 @@ public class ChannelEngineTest {
                 param12.setValue(false);
                 dictionnary1.addParams(param12);
                 chan1.addDictionary(dictionnary1);
-                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new UpdateParam(param11));
@@ -216,7 +217,7 @@ public class ChannelEngineTest {
                 printer10.addInputs(inputPortPrinter10);
                 node1.addComponents(printer10);
 
-                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new AddBinding(inputPortPrinter00));
@@ -300,7 +301,7 @@ public class ChannelEngineTest {
 
 
 
-                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1).toBlocking().first();
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(chan0, chan1, platform).toBlocking().first();
                 Assert.assertNotNull(res);
                 final TreeSet<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new RemoveBinding(inputPortPrinter00));
@@ -332,7 +333,7 @@ public class ChannelEngineTest {
                 fragmentDictionary1.addParams(stringParam1);
                 channel1.addFragmentDictionary(fragmentDictionary1);
 
-                final SortedSet<AdaptationOperation> res = channelEngine.diff(channel0, channel1).toBlocking().first();
+                final SortedSet<AdaptationOperation> res = channelEngine.diff(channel0, channel1, platform).toBlocking().first();
                 Assert.assertNotNull(res);
                 final Set<AdaptationOperation> expected = new TreeSet<>();
                 expected.add(new UpdateParam(stringParam1));

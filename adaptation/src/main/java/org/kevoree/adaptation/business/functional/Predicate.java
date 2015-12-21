@@ -1,4 +1,4 @@
-package org.kevoree.adaptation.util.functional;
+package org.kevoree.adaptation.business.functional;
 
 /**
  * Takes an element of type T and return a boolean.

@@ -1,4 +1,4 @@
-package org.kevoree.adaptation.util.comparators;
+package org.kevoree.adaptation.business.comparators;
 
 import org.kevoree.Instance;
 import org.kevoree.TypeDefinition;
@@ -12,12 +12,13 @@ import rx.functions.Func2;
 public class TypeDefEquality {
 
     private final ObservableInstanceFactory observableInstanceFactory = new ObservableInstanceFactory();
+
     /**
      * @param previous The previous instance
      * @param next     The current instance
      * @return True if previous and next shares the same type definition.
      */
-    public Boolean typeDefEquals(Instance previous, Instance next) {
+    public Boolean typeDefEquals(final Instance previous, final Instance next) {
         final Observable<TypeDefinition> previousTypeDefinition = observableInstanceFactory.getTypeDefObservable(previous);
         final Observable<TypeDefinition> nextTypeDefinition = observableInstanceFactory.getTypeDefObservable(next);
         return Observable.zip(nextTypeDefinition, previousTypeDefinition, new Func2<TypeDefinition, TypeDefinition, Boolean>() {

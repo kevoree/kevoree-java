@@ -1,4 +1,4 @@
-package org.kevoree.adaptation.util.comparators;
+package org.kevoree.adaptation.business.comparators;
 
 import org.kevoree.Param;
 import rx.functions.Func2;

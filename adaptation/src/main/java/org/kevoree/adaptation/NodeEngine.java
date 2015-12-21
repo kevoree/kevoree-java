@@ -2,7 +2,7 @@ package org.kevoree.adaptation;
 
 import org.kevoree.Node;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
-import org.kevoree.adaptation.util.DiffUtil;
+import org.kevoree.adaptation.business.DiffUtil;
 import rx.Observable;
 import rx.functions.Func2;
 
@@ -17,7 +17,7 @@ public class NodeEngine {
 
     public Observable<SortedSet<AdaptationOperation>> diff(final Node before, final Node after, String platform) {
         final Observable<SortedSet<AdaptationOperation>> nodes = diffUtil.diffSubnodes(before, after);
-        final Observable<SortedSet<AdaptationOperation>> components = diffUtil.diffComponents(before, after);
+        final Observable<SortedSet<AdaptationOperation>> components = diffUtil.diffComponents(before, after, platform);
         final Observable<SortedSet<AdaptationOperation>> dictionary = diffUtil.diffDictionary(before, after);
         final Observable<SortedSet<AdaptationOperation>> group = diffUtil.diffGroup(before, after);
         final Observable<SortedSet<AdaptationOperation>> channel = diffUtil.diffChannel(before, after);
