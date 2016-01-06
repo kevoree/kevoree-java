@@ -115,6 +115,7 @@ class org.kevoree.ParamType extends org.kevoree.Element {
     att name: String with index
     att required: Bool
     att fragment: Bool
+    att description: String
 
     rel constraints: org.kevoree.AbstractConstraint
 }
