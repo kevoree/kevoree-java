@@ -73,6 +73,13 @@ class org.kevoree.TypeDefinition extends org.kevoree.Element {
 
     rel dictionary: org.kevoree.DictionaryType with maxBound 1
     rel deployUnits: org.kevoree.DeployUnit
+    rel preferedVersions: org.kevoree.PreferedVersion
+}
+
+class org.kevoree.PreferedVersion extends org.kevoree.Element {
+  att platform: String
+  att name: String
+  att version: String
 }
 
 class org.kevoree.NodeType extends org.kevoree.TypeDefinition {

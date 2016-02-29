@@ -7,6 +7,7 @@ import org.kevoree.Model;
 import org.kevoree.Node;
 import org.kevoree.api.callback.DeployCallback;
 import org.kevoree.api.service.ModelService;
+import org.kevoree.log.Log;
 import org.kevoree.meta.MetaComponent;
 import org.kevoree.meta.MetaModel;
 import org.kevoree.meta.MetaNode;
@@ -15,6 +16,8 @@ import org.kevoree.modeling.KListener;
 import org.kevoree.modeling.KObject;
 import org.kevoree.modeling.KObjectIndex;
 import org.kevoree.modeling.memory.manager.DataManagerBuilder;
+import org.kevoree.modeling.memory.manager.internal.KInternalDataManager;
+import org.kevoree.modeling.plugin.WebSocketGateway;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,7 +28,31 @@ public class KevoreeCore implements Runnable, ModelService {
     private KevoreeModel kModel;
     private Model model;
     private Node node;
+    private String nodeName;
+    private int port;
     private final ScheduledExecutorService monoScheduler = Executors.newSingleThreadScheduledExecutor();
+
+    public KevoreeCore() {
+        Log.Logger logger = new Log.Logger();
+        logger.setCategory("KevoreeCore");
+        Log.setLogger(logger);
+    }
+
+    public void boot(final String nodeName, final int port) {
+        this.nodeName = nodeName;
+        this.port = port;
+
+        final KInternalDataManager idm = DataManagerBuilder.buildDefault();
+        this.kModel = new KevoreeModel(idm);
+        this.kModel.connect(new KCallback() {
+            @Override
+            public void on(Object o) {
+                WebSocketGateway.expose(idm.cdn(), port).start();
+                Log.info("Core started: {}", nodeName);
+                Log.info("WebSocket listening at: 0.0.0.0:{}", port);
+            }
+        });
+    }
 
     public void boot(String url, final String nodeName) {
 //        KContentDeliveryDriver cdd = new WebSocketPeer(url);
@@ -144,6 +171,7 @@ public class KevoreeCore implements Runnable, ModelService {
 
     public static void main(String[] args) {
         KevoreeCore core = new KevoreeCore();
-        core.boot("ws://localhost:3080", "node0");
+//        core.boot("ws://localhost:3080", "node0");
+        core.boot("node0", 9000);
     }
 }
