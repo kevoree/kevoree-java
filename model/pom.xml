@@ -51,8 +51,8 @@
                         </goals>
                         <configuration>
                             <metaModelFile>org.kevoree.mm</metaModelFile>
-                            <js>true</js>
-                            <moduleType>patate</moduleType>
+                            <!-- <js>true</js>
+                            <moduleType>patate</moduleType> -->
                         </configuration>
                     </execution>
                 </executions>
