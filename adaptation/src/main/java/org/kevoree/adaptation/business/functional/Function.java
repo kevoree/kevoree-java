@@ -1,7 +1,4 @@
-package org.kevoree.adaptation.util.functional;
-
-import org.kevoree.Group;
-import org.kevoree.adaptation.operation.util.AdaptationOperation;
+package org.kevoree.adaptation.business.functional;
 
 /**
  * A function which takes an element of type T and return an element of type U.

@@ -1,22 +1,28 @@
 package org.kevoree.adaptation.operation;
 
 import org.kevoree.Instance;
+import org.kevoree.Port;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
 /**
- * Remove instance Operation.
- * Created by mleduc on 16/12/15.
+ * Created by mleduc on 18/12/15.
  */
-public class RemoveInstance extends AdaptationOperation {
-
-    public RemoveInstance(final Instance instance) {
+public class AddBinding extends AdaptationOperation{
+    public AddBinding(final Port instance) {
         super(instance.uuid());
     }
 
     @Override
     public OperationOrder getOperationOrder() {
-        return OperationOrder.REMOVE_INSTANCE;
+        return OperationOrder.ADD_BINDING;
+    }
+
+    @Override
+    public String toString() {
+        return "AddBinding{" +
+                "uuid=" + uuid +
+                '}';
     }
 
     @Override
@@ -24,22 +30,10 @@ public class RemoveInstance extends AdaptationOperation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RemoveInstance that = (RemoveInstance) o;
+        AddBinding that = (AddBinding) o;
 
         return uuid == that.uuid;
 
-    }
-
-    @Override
-    public int compareTo(AdaptationOperation adaptationOperation) {
-        return super.compareTo(adaptationOperation);
-    }
-
-    @Override
-    public String toString() {
-        return "RemoveInstance{" +
-                "uuid=" + uuid +
-                '}';
     }
 
     @Override

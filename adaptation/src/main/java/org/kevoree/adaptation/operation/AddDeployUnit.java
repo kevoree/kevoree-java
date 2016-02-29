@@ -1,27 +1,26 @@
 package org.kevoree.adaptation.operation;
 
-import org.kevoree.Instance;
+import org.kevoree.DeployUnit;
+import org.kevoree.Port;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
 /**
- * AddInstance Operation
- * Created by mleduc on 16/12/15.
+ * Created by mleduc on 18/12/15.
  */
-public class AddInstance extends AdaptationOperation {
-
-    public AddInstance(final Instance instance) {
-        super(instance.uuid());
+public class AddDeployUnit extends AdaptationOperation{
+    public AddDeployUnit(final DeployUnit du) {
+        super(du.uuid());
     }
 
     @Override
     public OperationOrder getOperationOrder() {
-        return OperationOrder.ADD_INSTANCE;
+        return OperationOrder.ADD_DEPLOY_UNIT;
     }
 
     @Override
     public String toString() {
-        return "AddInstance{" +
+        return "AddDeployUnit{" +
                 "uuid=" + uuid +
                 '}';
     }
@@ -31,7 +30,7 @@ public class AddInstance extends AdaptationOperation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AddInstance that = (AddInstance) o;
+        AddDeployUnit that = (AddDeployUnit) o;
 
         return uuid == that.uuid;
 

@@ -1,6 +1,4 @@
-package org.kevoree.adaptation.util.functional;
-
-import org.kevoree.adaptation.util.functional.Predicate;
+package org.kevoree.adaptation.business.functional;
 
 /**
  * Take an element of type T and retun a predicate of type T.

@@ -15,6 +15,7 @@ class org.kevoree.Instance extends org.kevoree.Element {
     with instantiation "false"
 
     att name: String with index
+    att started: Bool
 
     rel typeDefinition: org.kevoree.TypeDefinition with maxBound 1
     rel dictionary: org.kevoree.Dictionary with maxBound 1
@@ -23,7 +24,7 @@ class org.kevoree.Instance extends org.kevoree.Element {
 class org.kevoree.Node extends org.kevoree.Instance {
     rel host: org.kevoree.Node with maxBound 1
     rel subNodes: org.kevoree.Node
-    rel components: org.kevoree.Component
+    rel components: org.kevoree.Component with opposite "host"
     rel groups: org.kevoree.Group with opposite "nodes"
 }
 
@@ -39,9 +40,9 @@ class org.kevoree.Group extends org.kevoree.Instance {
 }
 
 class org.kevoree.Component extends org.kevoree.Instance {
-    rel host: org.kevoree.Node with maxBound 1
-    rel inputs: org.kevoree.InputPort with opposite "channels"
-    rel outputs: org.kevoree.OutputPort with opposite "channels"
+    rel host: org.kevoree.Node with maxBound 1 with opposite "components"
+    rel inputs: org.kevoree.InputPort with opposite "components"
+    rel outputs: org.kevoree.OutputPort with opposite "components"
 }
 
 class org.kevoree.Port extends org.kevoree.Element {
@@ -50,9 +51,13 @@ class org.kevoree.Port extends org.kevoree.Element {
     rel type: org.kevoree.PortType
     rel channels: org.kevoree.Channel with opposite "inputs"
                                       with opposite "outputs"
+    rel components: org.kevoree.Component with opposite "inputs"
+                                          with opposite "outputs"
+                                          with maxBound 1
 }
 
 class org.kevoree.InputPort extends org.kevoree.Port {
+
 }
 
 class org.kevoree.OutputPort extends org.kevoree.Port {
@@ -117,6 +122,7 @@ class org.kevoree.ParamType extends org.kevoree.Element {
     att name: String with index
     att required: Bool
     att fragment: Bool
+    att description: String
 
     rel constraints: org.kevoree.AbstractConstraint
 }

@@ -18,7 +18,9 @@ public class ObservableDispatcher<T> implements KCallback<T[]> {
     @Override
     public void on(T[] cb) {
         for (T a : cb) {
-            subscriber.onNext(a);
+            if(a != null) {
+                subscriber.onNext(a);
+            }
         }
 
         if (!subscriber.isUnsubscribed()) {

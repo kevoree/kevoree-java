@@ -1,5 +1,6 @@
 package org.kevoree.adaptation.operation;
 
+import org.kevoree.Instance;
 import org.kevoree.adaptation.operation.util.AdaptationOperation;
 import org.kevoree.adaptation.operation.util.OperationOrder;
 
@@ -8,10 +9,8 @@ import org.kevoree.adaptation.operation.util.OperationOrder;
  * Created by mleduc on 16/12/15.
  */
 public class UpdateInstance extends AdaptationOperation {
-    private final long uuid;
-
-    public UpdateInstance(long uuid) {
-        this.uuid = uuid;
+    public UpdateInstance(final Instance instance) {
+        super(instance.uuid());
     }
 
     @Override
