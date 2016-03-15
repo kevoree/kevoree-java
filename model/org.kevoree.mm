@@ -5,14 +5,15 @@ class org.kevoree.Element {
 }
 
 class org.kevoree.Model extends org.kevoree.Element {
-    rel storage:  org.kevoree.StorageInfo with maxBound 1
+    rel storages:  org.kevoree.StorageInfo
     rel nodes: org.kevoree.Node
     rel channels: org.kevoree.Channel
     rel namespaces: org.kevoree.Namespace
 }
 
 class org.kevoree.StorageInfo extends org.kevoree.Element {
-    att uri: String
+    att type: String
+    rel values: org.kevoree.Value
 }
 
 class org.kevoree.Instance extends org.kevoree.Element {
