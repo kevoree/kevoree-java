@@ -13,7 +13,7 @@
     </parent>
 
     <properties>
-        <kmf.version>4.27.0</kmf.version>
+        <kmf.version>4.27.1-SNAPSHOT</kmf.version>
     </properties>
 
     <dependencies>
@@ -51,8 +51,7 @@
                         </goals>
                         <configuration>
                             <metaModelFile>org.kevoree.mm</metaModelFile>
-                            <!-- <js>true</js>
-                            <moduleType>patate</moduleType> -->
+                            <ts>true</ts>
                         </configuration>
                     </execution>
                 </executions>

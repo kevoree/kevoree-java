@@ -41,10 +41,10 @@ public class TestInstanceModel {
                 tickPort.addChannels(chan);
                 model.addChannels(chan);
 
-                Group group = kView.createGroup();
-                group.setName("group");
-                group.addNodes(node0);
-                model.addGroups(group);
+                Connector connector = kView.createConnector();
+                connector.setName("group");
+                connector.addNode(node0);
+                node0.addConnector(connector);
 
                 NodeType nodeType = kView.createNodeType();
                 nodeType.setName("JavaNode");

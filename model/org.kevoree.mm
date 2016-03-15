@@ -1,14 +1,18 @@
 with version "6.0.0-SNAPSHOT"
 
+class org.kevoree.Element {
+    rel metaData: org.kevoree.Value
+}
+
 class org.kevoree.Model extends org.kevoree.Element {
+    rel storage:  org.kevoree.StorageInfo with maxBound 1
     rel nodes: org.kevoree.Node
     rel channels: org.kevoree.Channel
-    rel groups: org.kevoree.Group
     rel namespaces: org.kevoree.Namespace
 }
 
-class org.kevoree.Element {
-    rel metaData: org.kevoree.Value
+class org.kevoree.StorageInfo extends org.kevoree.Element {
+    att uri: String
 }
 
 class org.kevoree.Instance extends org.kevoree.Element {
@@ -23,9 +27,9 @@ class org.kevoree.Instance extends org.kevoree.Element {
 
 class org.kevoree.Node extends org.kevoree.Instance {
     rel host: org.kevoree.Node with maxBound 1
-    rel subNodes: org.kevoree.Node
     rel components: org.kevoree.Component with opposite "host"
-    rel groups: org.kevoree.Group with opposite "nodes"
+    rel connector: org.kevoree.Connector with maxBound 1
+                                         with opposite "node"
 }
 
 class org.kevoree.Channel extends org.kevoree.Instance {
@@ -34,15 +38,16 @@ class org.kevoree.Channel extends org.kevoree.Instance {
     rel fragmentDictionary: org.kevoree.FragmentDictionary
 }
 
-class org.kevoree.Group extends org.kevoree.Instance {
-    rel nodes: org.kevoree.Node with opposite "groups"
-    rel fragmentDictionary: org.kevoree.FragmentDictionary with maxBound 1
-}
-
 class org.kevoree.Component extends org.kevoree.Instance {
-    rel host: org.kevoree.Node with maxBound 1 with opposite "components"
+    rel host: org.kevoree.Node with maxBound 1
+                               with opposite "components"
     rel inputs: org.kevoree.InputPort with opposite "components"
     rel outputs: org.kevoree.OutputPort with opposite "components"
+}
+
+class org.kevoree.Connector extends org.kevoree.Instance {
+    rel node: org.kevoree.Node with maxBound 1
+                               with opposite "connector"
 }
 
 class org.kevoree.Port extends org.kevoree.Element {
@@ -56,12 +61,9 @@ class org.kevoree.Port extends org.kevoree.Element {
                                           with maxBound 1
 }
 
-class org.kevoree.InputPort extends org.kevoree.Port {
+class org.kevoree.InputPort extends org.kevoree.Port {}
 
-}
-
-class org.kevoree.OutputPort extends org.kevoree.Port {
-}
+class org.kevoree.OutputPort extends org.kevoree.Port {}
 
 class org.kevoree.Namespace extends org.kevoree.Element {
     att name: String with index
@@ -82,17 +84,14 @@ class org.kevoree.TypeDefinition extends org.kevoree.Element {
 }
 
 class org.kevoree.PreferedVersion extends org.kevoree.Element {
-  att platform: String
-  att name: String
-  att version: String
+    att platform: String
+    att name: String
+    att version: String
 }
 
-class org.kevoree.NodeType extends org.kevoree.TypeDefinition {
-}
+class org.kevoree.NodeType extends org.kevoree.TypeDefinition {}
 
-class org.kevoree.GroupType extends org.kevoree.TypeDefinition {
-    att remote: Bool
-}
+class org.kevoree.ConnectorType extends org.kevoree.TypeDefinition {}
 
 class org.kevoree.ChannelType extends org.kevoree.TypeDefinition {
     att remote: Bool
