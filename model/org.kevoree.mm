@@ -5,16 +5,11 @@ class org.kevoree.Element {
 }
 
 class org.kevoree.Model extends org.kevoree.Element {
-    rel storages:  org.kevoree.StorageInfo
-    rel nodes: org.kevoree.Node
-    rel channels: org.kevoree.Channel
-    rel namespaces: org.kevoree.Namespace
+rel nodes: org.kevoree.Node
+rel channels: org.kevoree.Channel
+rel namespaces: org.kevoree.Namespace
 }
 
-class org.kevoree.StorageInfo extends org.kevoree.Element {
-    att type: String
-    rel values: org.kevoree.Value
-}
 
 class org.kevoree.Instance extends org.kevoree.Element {
     with instantiation "false"
@@ -29,7 +24,8 @@ class org.kevoree.Instance extends org.kevoree.Element {
 class org.kevoree.Node extends org.kevoree.Instance {
     rel host: org.kevoree.Node with maxBound 1
     rel components: org.kevoree.Component with opposite "host"
-    rel connector: org.kevoree.Connector with maxBound 1
+    rel groups: org.kevoree.Group with opposite "nodes"
+    rel modelConnector: org.kevoree.ModelConnector with maxBound 1
                                          with opposite "node"
 }
 
@@ -39,6 +35,11 @@ class org.kevoree.Channel extends org.kevoree.Instance {
     rel fragmentDictionary: org.kevoree.FragmentDictionary
 }
 
+class org.kevoree.Group extends org.kevoree.Instance {
+    rel nodes: org.kevoree.Node with opposite "groups"
+    rel fragmentDictionary: org.kevoree.FragmentDictionary with maxBound 1
+}
+
 class org.kevoree.Component extends org.kevoree.Instance {
     rel host: org.kevoree.Node with maxBound 1
                                with opposite "components"
@@ -46,7 +47,7 @@ class org.kevoree.Component extends org.kevoree.Instance {
     rel outputs: org.kevoree.OutputPort with opposite "components"
 }
 
-class org.kevoree.Connector extends org.kevoree.Instance {
+class org.kevoree.ModelConnector extends org.kevoree.Instance {
     rel node: org.kevoree.Node with maxBound 1
                                with opposite "connector"
 }
@@ -92,7 +93,11 @@ class org.kevoree.PreferedVersion extends org.kevoree.Element {
 
 class org.kevoree.NodeType extends org.kevoree.TypeDefinition {}
 
-class org.kevoree.ConnectorType extends org.kevoree.TypeDefinition {}
+class org.kevoree.GroupType extends org.kevoree.TypeDefinition {
+    att remote: Bool
+}
+
+class org.kevoree.ModelConnectorType extends org.kevoree.TypeDefinition {}
 
 class org.kevoree.ChannelType extends org.kevoree.TypeDefinition {
     att remote: Bool
