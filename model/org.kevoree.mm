@@ -211,6 +211,10 @@ class org.kevoree.MultilineConstraint extends org.kevoree.AbstractConstraint {
   att value: Bool
 }
 
+class org.kevoree.LengthConstraint extends org.kevoree.AbstractConstraint {
+  att value: Int
+}
+
 enum org.kevoree.NumberType {
   SHORT, INT, LONG, FLOAT, DOUBLE
 }
